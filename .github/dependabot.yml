@@ -9,17 +9,17 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     open-pull-requests-limit: 10
 
   - package-ecosystem: "maven"
     directory: "/backend"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     open-pull-requests-limit: 10
 
-  - package-ecosystem: "npm"
-    directory: "/frontend"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
+#  - package-ecosystem: "npm"
+#    directory: "/frontend"
+#    schedule:
+#      interval: "daily"
+#    open-pull-requests-limit: 10
