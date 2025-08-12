@@ -18,7 +18,10 @@ public class ChatMessage {
     private Long id;
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
+    private String cipherText;
+
+    @Column(nullable = false, length = 32)
+    private String iv;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", nullable = false)

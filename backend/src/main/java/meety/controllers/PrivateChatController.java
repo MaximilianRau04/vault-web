@@ -6,6 +6,7 @@ import meety.dtos.PrivateChatDto;
 import meety.models.ChatMessage;
 import meety.models.PrivateChat;
 import meety.repositories.ChatMessageRepository;
+import meety.security.EncryptionUtil;
 import meety.services.PrivateChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,11 +21,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PrivateChatController {
 
-    @Autowired
     private final PrivateChatService privateChatService;
-
-    @Autowired
     private final ChatMessageRepository chatMessageRepository;
+    private final EncryptionUtil encryptionUtil;
 
     @GetMapping("/between")
     public PrivateChatDto getOrCreatePrivateChat(
@@ -40,14 +39,21 @@ public class PrivateChatController {
         List<ChatMessage> messages = chatMessageRepository.findByPrivateChatIdOrderByTimestampAsc(privateChatId);
 
         return messages.stream()
-                .map(message -> new ChatMessageDto(
-                        message.getContent(),
-                        message.getTimestamp().toString(),
-                        null, // groupId stays null for private chats
-                        privateChatId,
-                        message.getSender().getId(),
-                        message.getSender().getUsername()
-                ))
+                .map(message -> {
+                    try {
+                        String decryptedContent = encryptionUtil.decrypt(message.getCipherText(), message.getIv());
+                        return new ChatMessageDto(
+                                decryptedContent,
+                                message.getTimestamp().toString(),
+                                null,
+                                privateChatId,
+                                message.getSender().getId(),
+                                message.getSender().getUsername()
+                        );
+                    } catch (Exception e) {
+                        throw new RuntimeException("Decryption failed", e);
+                    }
+                })
                 .toList();
     }
 }

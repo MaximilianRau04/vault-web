@@ -12,8 +12,10 @@ import meety.repositories.ChatMessageRepository;
 import meety.repositories.GroupRepository;
 import meety.repositories.PrivateChatRepository;
 import meety.repositories.UserRepository;
+import meety.security.EncryptionUtil;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 
 @Service
@@ -24,6 +26,7 @@ public class ChatService {
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
     private final PrivateChatRepository privateChatRepository;
+    private final EncryptionUtil encryptionUtil;
 
     /**
      * Saves a chat message to the database.
@@ -44,8 +47,16 @@ public class ChatService {
             throw new UserNotFoundException("Sender information missing");
         }
 
+        EncryptionUtil.EncryptResult encrypted;
+        try {
+            encrypted = encryptionUtil.encrypt(dto.getContent());
+        } catch (Exception e) {
+            throw new RuntimeException("Encryption failed", e);
+        }
+
         ChatMessage message = new ChatMessage();
-        message.setContent(dto.getContent());
+        message.setCipherText(encrypted.cipherTextBase64);
+        message.setIv(encrypted.ivBase64);
         message.setSender(sender);
 
         if (dto.getTimestamp() != null) {
