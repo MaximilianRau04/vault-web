@@ -9,6 +9,13 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+/**
+ * Controller responsible for handling WebSocket-based chat functionality.
+ * <p>
+ * Supports both group chat and private messages. Messages are first persisted
+ * via ChatService and then dispatched to the corresponding topics or users.
+ * </p>
+ */
 @Controller
 @RequiredArgsConstructor
 public class ChatController {
@@ -17,9 +24,10 @@ public class ChatController {
     private final ChatService chatService;
 
     /**
-     * Handles incoming chat messages and broadcasts them to the appropriate group topic.
+     * Handles incoming group chat messages from clients and broadcasts
+     * them to all subscribers of the specified group topic.
      *
-     * @param messageDto DTO containing the message content, sender, and group.
+     * @param messageDto DTO containing message content, sender information, and target group
      */
     @MessageMapping("/chat.send")
     public void sendMessage(@Payload ChatMessageDto messageDto) {
@@ -31,6 +39,12 @@ public class ChatController {
         );
     }
 
+    /**
+     * Handles incoming private chat messages from clients and sends them
+     * to both users of the private chat. The message content is decrypted before delivery.
+     *
+     * @param messageDto DTO containing message content, sender information, and private chat ID
+     */
     @MessageMapping("/chat.private.send")
     public void sendPrivateMessage(@Payload ChatMessageDto messageDto) {
         ChatMessage savedMessage = chatService.saveMessage(messageDto);

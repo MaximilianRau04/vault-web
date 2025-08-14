@@ -28,10 +28,19 @@ public class ChatService {
     private final EncryptionUtil encryptionUtil;
 
     /**
-     * Saves a chat message to the database.
+     * Saves a chat message to a group or private chat.
      *
-     * @param dto DTO containing the content, sender ID, and group ID.
-     * @return The persisted ChatMessage entity.
+     * <p>The message content is encrypted before being persisted. The sender is
+     * identified either by ID or username. If a timestamp is not provided, the
+     * current time is used. The message must belong to either a group or a private chat.</p>
+     *
+     * @param dto DTO containing the message content, sender information, timestamp,
+     *            and either a groupId or privateChatId.
+     * @return The persisted ChatMessage entity with encrypted content.
+     * @throws UserNotFoundException  if the sender cannot be found by ID or username.
+     * @throws GroupNotFoundException if neither groupId nor privateChatId is provided,
+     *                                or if the specified group/private chat does not exist.
+     * @throws RuntimeException       if encryption fails.
      */
     public ChatMessage saveMessage(ChatMessageDto dto) {
         User sender;
@@ -79,6 +88,17 @@ public class ChatService {
         return chatMessageRepository.save(message);
     }
 
+    /**
+     * Decrypts a previously encrypted chat message.
+     *
+     * <p>Uses the IV and cipher text stored in the database to decrypt
+     * and return the original message content as a plain string.</p>
+     *
+     * @param cipherTextBase64 The encrypted message in Base64 encoding.
+     * @param ivBase64         The initialization vector used during encryption, in Base64.
+     * @return The decrypted plain text message.
+     * @throws RuntimeException if decryption fails.
+     */
     public String decrypt(String cipherTextBase64, String ivBase64) {
         try {
             return encryptionUtil.decrypt(cipherTextBase64, ivBase64);

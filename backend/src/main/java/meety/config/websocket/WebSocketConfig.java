@@ -59,6 +59,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS();
     }
 
+    /**
+     * Configure the inbound channel for STOMP messages from clients.
+     * <p>
+     * This method adds a ChannelInterceptor that intercepts incoming messages before
+     * they reach message-handling methods. During the CONNECT command, it extracts
+     * the JWT token from the "Authorization" header, validates it, and sets the
+     * corresponding Spring Security Authentication object as the user for the session.
+     * This enables per-user messaging and security checks for WebSocket messages.
+     * </p>
+     *
+     * @param registration the client inbound channel registration
+     */
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(new ChannelInterceptor() {
@@ -81,5 +93,4 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             }
         });
     }
-
 }
