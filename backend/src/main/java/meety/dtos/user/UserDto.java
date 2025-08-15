@@ -1,4 +1,4 @@
-package meety.dtos;
+package meety.dtos.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

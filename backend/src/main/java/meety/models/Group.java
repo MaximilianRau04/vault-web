@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import meety.dtos.GroupDto;
 
-import java.util.Date;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -35,14 +36,14 @@ public class Group {
     @ToString.Exclude
     private User createdBy;
 
-    private Date createdAt;
+    private Instant createdAt;
     private Boolean isPublic;
 
     public Group(GroupDto dto) {
         name = dto.getName();
         description = dto.getDescription();
-        members = List.of();
+        this.members = new ArrayList<>();
         isPublic = true;
-        createdAt = new Date();
+        createdAt = Instant.now();
     }
 }

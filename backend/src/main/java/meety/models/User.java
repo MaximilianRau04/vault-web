@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import meety.dtos.UserDto;
+import meety.dtos.user.UserDto;
 
 import java.util.List;
 

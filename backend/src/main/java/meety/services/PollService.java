@@ -14,6 +14,7 @@ import meety.repositories.PollVoteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,11 +38,16 @@ public class PollService {
         if (groupMemberRepository.findByGroupAndUser(group, author).isEmpty()) {
             throw new NotMemberException(group.getId(), author.getId());
         }
+
+        Instant deadlineInstant = pollDto.getDeadline() != null
+                ? pollDto.getDeadline().toInstant()
+                : null;
+
         Poll poll = Poll.builder()
                 .group(group)
                 .author(author)
                 .question(pollDto.getQuestion())
-                .deadline(pollDto.getDeadline())
+                .deadline(deadlineInstant)
                 .isAnonymous(pollDto.isAnonymous())
                 .build();
 
@@ -146,8 +152,12 @@ public class PollService {
             throw new UnauthorizedException("Only the author can edit the poll");
         }
 
+        Instant deadlineInstant = pollDto.getDeadline() != null
+                ? pollDto.getDeadline().toInstant()
+                : null;
+
         poll.setQuestion(pollDto.getQuestion());
-        poll.setDeadline(pollDto.getDeadline());
+        poll.setDeadline(deadlineInstant);
         poll.setAnonymous(pollDto.isAnonymous());
 
         poll.getOptions().clear();

@@ -2,7 +2,8 @@ package meety.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import meety.dtos.UserDto;
+import meety.dtos.user.UserDto;
+import meety.dtos.user.UserResponseDto;
 import meety.models.User;
 import meety.services.UserService;
 import meety.services.auth.AuthService;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -63,5 +65,18 @@ public class UserController {
     public ResponseEntity<Map<String, Boolean>> checkUsernameExists(@RequestParam String username) {
         boolean exists = userService.usernameExists(username);
         return ResponseEntity.ok(Map.of("exists", exists));
+    }
+
+    @GetMapping("/users")
+    @Operation(
+            summary = "Get all users",
+            description = "Returns a list of all users with basic info (e.g., usernames) for displaying in the chat list."
+    )
+    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
+        List<UserResponseDto> users = userService.getAllUsers()
+                .stream()
+                .map(UserResponseDto::new)
+                .toList();
+        return ResponseEntity.ok(users);
     }
 }

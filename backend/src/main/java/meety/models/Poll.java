@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 @Entity
@@ -29,14 +29,14 @@ public class Poll {
     private String question;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createdAt;
+    private Instant createdAt;
 
     @ManyToOne
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date deadline;
+    private Instant deadline;
 
     private boolean isAnonymous;
 
@@ -46,6 +46,6 @@ public class Poll {
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = new Date();
+        this.createdAt = Instant.now();
     }
 }

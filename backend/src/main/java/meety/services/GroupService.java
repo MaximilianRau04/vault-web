@@ -115,6 +115,4 @@ public class GroupService {
         groupMemberRepository.delete(memberToRemove);
         return group;
     }
-
-
 }

@@ -1,1 +1,33 @@
-<p>home works!</p>
+<div class="max-w-xl mx-auto bg-white rounded-md shadow-sm mt-4">
+  <h2 class="text-lg font-semibold text-gray-800 px-4 py-3 border-b">Users</h2>
+
+  <div *ngIf="isLoading" class="text-center text-gray-400 py-4">
+    Loading users...
+  </div>
+  <div *ngIf="error" class="text-center text-red-500 py-4 font-medium">
+    {{ error }}
+  </div>
+
+  <ul *ngIf="!isLoading && !error" class="divide-y divide-gray-200">
+    <li
+      *ngFor="let user of users"
+      (click)="openChat(user.username)"
+      class="flex items-center px-4 py-3 cursor-pointer hover:bg-gray-100 transition"
+    >
+      <div
+        class="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold mr-4 select-none"
+      >
+        {{ user.username.charAt(0).toUpperCase() }}
+      </div>
+      <span class="text-gray-800 font-medium">{{ user.username }}</span>
+    </li>
+  </ul>
+</div>
+
+<app-private-chat-dialog
+  *ngIf="selectedUsername && privateChatId"
+  [username]="selectedUsername"
+  [currentUsername]="currentUsername"
+  [privateChatId]="privateChatId"
+  (closeChat)="closeChat()"
+/>

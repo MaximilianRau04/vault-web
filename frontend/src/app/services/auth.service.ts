@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable, tap } from 'rxjs';
-import { environment } from '../../environments/environment.test';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -16,7 +16,12 @@ export class AuthService {
       .post<{
         token: string;
       }>(`${this.apiUrl}/auth/login`, { username, password })
-      .pipe(tap((res) => this.saveToken(res.token)));
+      .pipe(
+        tap((res) => {
+          this.saveToken(res.token);
+          this.saveUsername(username);
+        }),
+      );
   }
 
   register(username: string, password: string): Observable<string> {
@@ -29,6 +34,18 @@ export class AuthService {
 
   saveToken(token: string): void {
     localStorage.setItem('token', token);
+  }
+
+  saveUsername(username: string): void {
+    localStorage.setItem('username', username);
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('token') as string | null;
+  }
+
+  getUsername(): string | null {
+    return localStorage.getItem('username') as string | null;
   }
 
   isLoggedIn(): boolean {

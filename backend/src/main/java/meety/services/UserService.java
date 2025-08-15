@@ -1,12 +1,13 @@
 package meety.services;
 
 import meety.exceptions.DuplicateUsernameException;
-import meety.exceptions.notfound.UserNotFoundException;
 import meety.models.User;
 import meety.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class UserService {
@@ -38,20 +39,11 @@ public class UserService {
         userRepository.save(user);
     }
 
-    /**
-     * Finds a user by their username.
-     *
-     * @param username The username to search for.
-     * @return The User entity if found, or null if no user exists with this username.
-     * <p>
-     * Used internally to fetch full user details for login or other user-related operations.
-     */
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
-    }
-
     public boolean usernameExists(String username) {
         return userRepository.existsByUsername(username);
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 }
