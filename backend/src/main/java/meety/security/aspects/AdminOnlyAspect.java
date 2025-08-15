@@ -14,7 +14,19 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-
+/**
+ * Aspect that enforces admin-only access for methods annotated with {@link meety.security.annotations.AdminOnly}.
+ * <p>
+ * This aspect intercepts method calls and verifies that the currently authenticated user
+ * has an ADMIN role in the specified group. If the user is not authenticated or does not
+ * have admin privileges, an {@link AdminAccessDeniedException} is thrown.
+ * </p>
+ * <p>
+ * Methods annotated with {@code @AdminOnly} must have the group ID as the first parameter
+ * (of type {@link Long}) to allow the aspect to verify the user's role within that group.
+ * </p>
+ *
+ */
 @Aspect
 @Component
 public class AdminOnlyAspect {
@@ -25,6 +37,17 @@ public class AdminOnlyAspect {
     @Autowired
     private GroupMemberRepository groupMemberRepository;
 
+    /**
+     * Advice that runs before any method annotated with {@link meety.security.annotations.AdminOnly}.
+     * <p>
+     * Checks if the current user is authenticated and has an ADMIN role in the specified group.
+     * Throws {@link AdminAccessDeniedException} if the user is not authenticated or not an admin.
+     * </p>
+     *
+     * @param joinPoint the join point providing access to the method being invoked and its arguments
+     * @throws AdminAccessDeniedException if the user is not authenticated or does not have admin privileges
+     * @throws IllegalArgumentException   if the method does not have a group ID (Long) as its first argument
+     */
     @Before("@annotation(meety.security.annotations.AdminOnly)")
     public void checkAdmin(JoinPoint joinPoint) {
         User currentUser = authService.getCurrentUser();

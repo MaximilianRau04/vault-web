@@ -10,6 +10,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * Service class for handling private chats between two users.
+ * <p>
+ * Provides functionality to retrieve an existing private chat or create a new one if it does not exist.
+ * </p>
+ */
 @Service
 @RequiredArgsConstructor
 public class PrivateChatService {
@@ -51,4 +57,3 @@ public class PrivateChatService {
         return privateChatRepository.save(privateChat);
     }
 }
-

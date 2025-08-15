@@ -12,8 +12,29 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service class responsible for handling authentication and user session-related operations.
+ * <p>
+ * Provides functionality for:
+ * <ul>
+ *     <li>Authenticating users with username and password.</li>
+ *     <li>Generating JWT tokens for authenticated users.</li>
+ *     <li>Retrieving the currently authenticated user from the security context.</li>
+ * </ul>
+ * <p>
+ * This service integrates with Spring Security's AuthenticationManager for authentication,
+ * UserRepository for fetching user entities, and JwtUtil for generating JWT tokens.
+ * <p>
+ * Security considerations:
+ * <ul>
+ *     <li>Passwords are never stored or transmitted in plaintext.</li>
+ *     <li>Authentication uses BCryptPasswordEncoder for secure password hashing.</li>
+ *     <li>JWT tokens are signed and include necessary claims (e.g., username, role) for stateless authentication.</li>
+ * </ul>
+ */
 @Service
 public class AuthService {
+
     @Autowired
     private AuthenticationManager authenticationManager;
 
@@ -24,61 +45,29 @@ public class AuthService {
     private UserRepository userRepository;
 
     /**
-     * Authenticates a user and returns a JWT token if successful.
-     *
-     * @param username The username provided by the client.
-     * @param password The plaintext password provided by the client.
-     * @return A JWT token containing user information and claims.
+     * Authenticates a user using their username and password and returns a JWT token upon successful authentication.
      * <p>
      * Workflow:
-     * 1. The AuthenticationManager handles credential validation (username and password).
-     * Internally, the password is checked against the stored hash.
-     * If invalid, an exception is thrown.
+     * <ol>
+     *     <li>The AuthenticationManager validates the username and password against the stored hash.</li>
+     *     <li>If authentication succeeds, the Authentication object is stored in the SecurityContext.</li>
+     *     <li>UserDetails are retrieved from the Authentication object, containing basic security info (username, roles).</li>
+     *     <li>The full User entity is then loaded from the database for additional details.</li>
+     *     <li>A JWT token is generated for the user, signed and valid for a specific duration.</li>
+     * </ol>
      * <p>
-     * 2. Upon successful authentication, an Authentication object is returned,
-     * containing the authenticated user's details (principal).
-     * <p>
-     * 3. The Authentication object is stored in the SecurityContext,
-     * so Spring Security knows the user is currently authenticated.
-     * <p>
-     * 4. UserDetails contains security-relevant user data (username, password hash, roles),
-     * but not necessarily all fields from the User entity.
-     * <p>
-     * 5. To access full user information (e.g. role enum, additional fields),
-     * the User entity is loaded again from the database via the UserRepository.
-     * <p>
-     * 6. A JWT token is generated using the full User object,
-     * including username and role claims,
-     * signed with HS256, and valid for 1 hour.
-     * <p>
-     * Detailed explanation of authenticationManager.authenticate(...):
-     * <p>
-     * - When you call:
-     * Authentication authentication = authenticationManager.authenticate(
-     * new UsernamePasswordAuthenticationToken(username, password)
-     * );
-     * <p>
-     * The following happens internally:
-     * <p>
-     * a) Spring Security detects the type UsernamePasswordAuthenticationToken
-     * and triggers a username-password authentication process.
-     * <p>
-     * b) It calls the UserDetailsService's loadUserByUsername(username) method,
-     * which loads the user details (including the stored password hash) from the DB.
-     * <p>
-     * c) Spring Security compares the plaintext password (from the token) with the stored hashed password
-     * using the configured PasswordEncoder (e.g. BCryptPasswordEncoder).
-     * <p>
-     * d) If the password matches, the authentication is successful.
-     * If not, a BadCredentialsException is thrown.
-     * <p>
-     * e) On success, Spring creates a fully authenticated Authentication object,
-     * including the principal (UserDetails) and authorities (roles).
-     * <p>
-     * Notes:
-     * - The password comparison is automatic, based on the PasswordEncoder bean.
-     * - This process ensures your password is never stored or compared as plaintext.
-     * The JWT token returned can then be used by clients in the Authorization header to access secured endpoints.
+     * Detailed notes on {@code authenticationManager.authenticate(...)}:
+     * <ul>
+     *     <li>Spring Security calls the UserDetailsService to fetch user info by username.</li>
+     *     <li>The provided password is compared with the stored hashed password using PasswordEncoder.</li>
+     *     <li>If the password matches, a fully authenticated Authentication object is returned.</li>
+     *     <li>If the password does not match, a BadCredentialsException is thrown.</li>
+     * </ul>
+     *
+     * @param username the username provided by the client
+     * @param password the plaintext password provided by the client
+     * @return a signed JWT token representing the authenticated user
+     * @throws UserNotFoundException if the user does not exist in the database
      */
     public String login(String username, String password) {
         Authentication authentication = authenticationManager.authenticate(
@@ -94,6 +83,14 @@ public class AuthService {
         return jwtUtil.generateToken(user);
     }
 
+    /**
+     * Retrieves the currently authenticated user from the SecurityContext.
+     * <p>
+     * If no user is authenticated, this method returns {@code null}.
+     * Otherwise, it fetches the full {@link User} entity from the database based on the username.
+     *
+     * @return the currently authenticated {@link User}, or {@code null} if no user is authenticated
+     */
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {

@@ -17,10 +17,8 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 /**
  * WebSocket configuration enabling STOMP messaging for real-time chat functionality.
- * <p>
  * Sets up the message broker with an in-memory topic destination and registers the
  * WebSocket endpoint with SockJS fallback support.
- * </p>
  */
 @Configuration
 @EnableWebSocketMessageBroker
@@ -61,13 +59,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     /**
      * Configure the inbound channel for STOMP messages from clients.
-     * <p>
      * This method adds a ChannelInterceptor that intercepts incoming messages before
      * they reach message-handling methods. During the CONNECT command, it extracts
      * the JWT token from the "Authorization" header, validates it, and sets the
      * corresponding Spring Security Authentication object as the user for the session.
      * This enables per-user messaging and security checks for WebSocket messages.
-     * </p>
      *
      * @param registration the client inbound channel registration
      */

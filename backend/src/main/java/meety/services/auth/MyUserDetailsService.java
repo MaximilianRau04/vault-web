@@ -8,6 +8,38 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service class that integrates the application's User entity with Spring Security.
+ * <p>
+ * Implements {@link UserDetailsService}, which is used by Spring Security during the authentication process.
+ * This service loads user-specific data given a username.
+ * <p>
+ * Responsibilities:
+ * <ul>
+ *     <li>Retrieve a {@link User} entity from the database via {@link UserRepository}.</li>
+ *     <li>Convert the domain {@link User} into a Spring Security {@link UserDetails} object.</li>
+ *     <li>Throw {@link UsernameNotFoundException} if the user does not exist, signaling authentication failure.</li>
+ * </ul>
+ * <p>
+ * Detailed workflow:
+ * <ol>
+ *     <li>Spring Security calls {@link #loadUserByUsername(String)} with the username supplied during login.</li>
+ *     <li>The method queries the {@link UserRepository} to fetch the {@link User} entity.</li>
+ *     <li>If no user is found, a {@link UsernameNotFoundException} is thrown.</li>
+ *     <li>If the user is found, a {@link UserDetails} object is built using:
+ *         <ul>
+ *             <li>username: used in the security context as the principal</li>
+ *             <li>password: hashed password stored in the database (e.g., BCrypt)</li>
+ *             <li>authorities: roles or permissions (can be added here if needed)</li>
+ *         </ul>
+ *     </li>
+ *     <li>Spring Security then compares the provided plaintext password with the stored hash using the configured {@link org.springframework.security.crypto.password.PasswordEncoder}.</li>
+ *     <li>If the passwords match, authentication succeeds; otherwise, it fails.</li>
+ * </ol>
+ * <p>
+ * This design decouples the application's {@link User} entity from Spring Security's internal representation,
+ * providing flexibility and security abstraction.
+ */
 @Service
 public class MyUserDetailsService implements UserDetailsService {
 
@@ -15,36 +47,11 @@ public class MyUserDetailsService implements UserDetailsService {
     private UserRepository userRepository;
 
     /**
-     * Loads the user's data given a username.
-     * <p>
-     * This method is called by Spring Security during the authentication process.
-     * It retrieves the user from the database and converts it into a UserDetails object
-     * that Spring Security can use internally.
+     * Loads the user details for Spring Security based on the given username.
      *
-     * @param username The username of the user trying to authenticate.
-     * @return UserDetails object containing username, hashed password, and authorities (roles).
-     * @throws UsernameNotFoundException if no user with the given username is found.
-     *                                   <p>
-     *                                   Detailed explanation:
-     *                                   <p>
-     *                                   1. The method queries the UserRepository to find a User entity by username.
-     *                                   If no User is found, it throws UsernameNotFoundException, which signals to Spring Security that authentication should fail.
-     *                                   <p>
-     *                                   3. If a User is found, the method returns an instance of Spring Security's UserDetails implementation.
-     *                                   <p>
-     *                                   - This UserDetails object includes:
-     *                                   a) username: used as the identity in the security context.
-     *                                   b) password: the hashed password stored in the database (e.g. BCrypt hash).
-     *                                   c) authorities: a list of granted roles or permissions, prefixed with "ROLE_"
-     *                                   because Spring Security expects roles to follow this naming convention.
-     *                                   <p>
-     *                                   4. Spring Security uses this UserDetails object internally during authentication:
-     *                                   - It compares the supplied plaintext password (from the login request)
-     *                                   with the stored hashed password using a PasswordEncoder.
-     *                                   - If they match, the authentication is successful and the user is considered authenticated.
-     *                                   <p>
-     *                                   5. This abstraction (UserDetails) decouples the domain User entity
-     *                                   from Spring Security's internal representation, allowing flexibility.
+     * @param username The username of the user attempting to authenticate.
+     * @return A {@link UserDetails} object containing the username, hashed password, and authorities.
+     * @throws UsernameNotFoundException if the username does not exist in the database.
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

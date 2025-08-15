@@ -17,6 +17,23 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 
+/**
+ * Service responsible for handling chat-related operations.
+ *
+ * <p>This service provides methods to save and decrypt chat messages for both group chats
+ * and private chats. Messages are encrypted before being stored in the database to ensure
+ * confidentiality. The service supports identifying the sender either by ID or username
+ * and can handle automatic timestamping if none is provided.</p>
+ *
+ * <p>Main responsibilities:</p>
+ * <ul>
+ *     <li>Validate sender existence by ID or username.</li>
+ *     <li>Encrypt message content before saving.</li>
+ *     <li>Associate messages with a group or private chat.</li>
+ *     <li>Persist chat messages into the database.</li>
+ *     <li>Decrypt stored messages on demand.</li>
+ * </ul>
+ */
 @Service
 @RequiredArgsConstructor
 public class ChatService {

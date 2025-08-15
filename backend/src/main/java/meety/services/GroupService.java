@@ -19,8 +19,13 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Service class for managing groups, including creating, updating,
+ * joining, leaving, and managing group members.
+ */
 @Service
 public class GroupService {
+
     @Autowired
     private GroupRepository groupRepository;
 
@@ -30,15 +35,33 @@ public class GroupService {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * Retrieves all public groups.
+     *
+     * @return a list of all groups marked as public.
+     */
     public List<Group> getPublicGroups() {
         List<Group> allGroups = groupRepository.findAll();
         return allGroups.stream().filter(Group::getIsPublic).toList();
     }
 
+    /**
+     * Retrieves a group by its ID.
+     *
+     * @param id the ID of the group.
+     * @return an Optional containing the group if found.
+     */
     public Optional<Group> getGroupById(Long id) {
         return groupRepository.findById(id);
     }
 
+    /**
+     * Creates a new group with the given DTO and sets the creator as admin.
+     *
+     * @param dto     the group data transfer object containing name, description, and visibility.
+     * @param creator the user who creates the group.
+     * @return the newly created group.
+     */
     public Group createGroup(GroupDto dto, User creator) {
         Group group = new Group(dto);
         group.setCreatedBy(creator);
@@ -48,6 +71,14 @@ public class GroupService {
         return group;
     }
 
+    /**
+     * Updates an existing group's details.
+     *
+     * @param id           the ID of the group to update.
+     * @param updatedGroup the DTO containing updated group information.
+     * @return the updated group.
+     * @throws GroupNotFoundException if no group exists with the given ID.
+     */
     public Group updateGroup(Long id, GroupDto updatedGroup) {
         return groupRepository.findById(id).map(existing -> {
             existing.setName(updatedGroup.getName());
@@ -57,10 +88,24 @@ public class GroupService {
         }).orElseThrow(() -> new GroupNotFoundException("Group not found with id: " + id));
     }
 
+    /**
+     * Deletes a group by its ID.
+     *
+     * @param id the ID of the group to delete.
+     */
     public void deleteGroup(Long id) {
         groupRepository.deleteById(id);
     }
 
+    /**
+     * Adds a user to a group as a regular member.
+     *
+     * @param groupId     the ID of the group to join.
+     * @param currentUser the user who wants to join the group.
+     * @return the group the user joined.
+     * @throws GroupNotFoundException if no group exists with the given ID.
+     * @throws AlreadyMemberException if the user is already a member of the group.
+     */
     public Group joinGroup(Long groupId, User currentUser) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new GroupNotFoundException("Group not found with id: " + groupId));
@@ -74,6 +119,15 @@ public class GroupService {
         return group;
     }
 
+    /**
+     * Removes a user from a group.
+     *
+     * @param groupId     the ID of the group to leave.
+     * @param currentUser the user who wants to leave the group.
+     * @return the group the user left.
+     * @throws GroupNotFoundException if no group exists with the given ID.
+     * @throws NotMemberException     if the user is not a member of the group.
+     */
     public Group leaveGroup(Long groupId, User currentUser) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new GroupNotFoundException("Group not found with id: " + groupId));
@@ -85,6 +139,13 @@ public class GroupService {
         return group;
     }
 
+    /**
+     * Retrieves all members of a group.
+     *
+     * @param groupId the ID of the group.
+     * @return a list of users who are members of the group.
+     * @throws GroupNotFoundException if no group exists with the given ID.
+     */
     public List<User> getMembers(Long groupId) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new GroupNotFoundException("Group not found"));
@@ -95,6 +156,20 @@ public class GroupService {
                 .toList();
     }
 
+    /**
+     * Removes a specific user from a group.
+     *
+     * <p>If the user to remove is an admin, ensures that the group still has at least
+     * one admin remaining.</p>
+     *
+     * @param groupId the ID of the group.
+     * @param userId  the ID of the user to remove.
+     * @return the group after removing the member.
+     * @throws GroupNotFoundException if no group exists with the given ID.
+     * @throws UserNotFoundException  if no user exists with the given ID.
+     * @throws NotMemberException     if the user is not a member of the group.
+     * @throws LastAdminException     if the user is the last admin in the group.
+     */
     public Group removeMember(Long groupId, Long userId) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new GroupNotFoundException("Group not found with id: " + groupId));

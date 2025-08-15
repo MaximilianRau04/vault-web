@@ -9,8 +9,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Service class for managing users.
+ * <p>
+ * Provides functionality for user registration, checking for existing usernames,
+ * and retrieving all users. Passwords are securely encoded before storing.
+ * </p>
+ */
 @Service
 public class UserService {
+
     @Autowired
     private UserRepository userRepository;
 
@@ -19,17 +27,19 @@ public class UserService {
 
     /**
      * Registers a new user by encoding their password and assigning the default role.
+     * <p>
+     * Steps performed by this method:
+     * <ol>
+     *     <li>Check if the username already exists in the database. If so, throw {@link DuplicateUsernameException}.</li>
+     *     <li>Encode the plaintext password using the injected {@link PasswordEncoder}.</li>
+     *     <li>Save the user entity with the hashed password to the database via {@link UserRepository}.</li>
+     * </ol>
+     * <p>
+     * Important:
+     * - The PasswordEncoder bean must match the encoder used during authentication to correctly verify passwords.
      *
-     * @param user The User entity with plaintext password and username set.
-     *             <p>
-     *             1. The plaintext password from the User object is hashed using the injected PasswordEncoder.
-     *             This ensures that the password is securely stored in the database (never plaintext).
-     *             The hashing algorithm used depends on the PasswordEncoder bean configuration (commonly BCrypt).
-     *             2. The user's role is set to the default Role.User.
-     *             3. The user entity with hashed password and role is then saved to the database via UserRepository.
-     *             <p>
-     *             Important:
-     *             - The PasswordEncoder bean must be consistent with the encoder used during authentication to correctly verify passwords later on.
+     * @param user The {@link User} entity containing username and plaintext password.
+     * @throws DuplicateUsernameException if a user with the same username already exists.
      */
     public void registerUser(User user) {
         if (usernameExists(user.getUsername())) {
@@ -39,10 +49,21 @@ public class UserService {
         userRepository.save(user);
     }
 
+    /**
+     * Checks if a username already exists in the database.
+     *
+     * @param username The username to check.
+     * @return {@code true} if the username exists, {@code false} otherwise.
+     */
     public boolean usernameExists(String username) {
         return userRepository.existsByUsername(username);
     }
 
+    /**
+     * Retrieves a list of all registered users.
+     *
+     * @return A {@link List} of {@link User} entities.
+     */
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }

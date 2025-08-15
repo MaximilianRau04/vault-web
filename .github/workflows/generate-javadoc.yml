@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   javadoc:
     name: Generate Javadoc
@@ -23,12 +27,16 @@ jobs:
       - name: Build project & generate Javadoc
         working-directory: ./backend
         run: |
-          ./mvnw clean javadoc:javadoc
+          ./mvnw clean javadoc:javadoc -Dmaven.javadoc.failOnError=false
           rm -rf .docs
-          mv target/site/apidocs .docs
+          mv target/reports/apidocs .docs
 
-      - name: Commit and push Javadoc
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "chore: update Javadoc"
-          branch: main
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "$GITHUB_ACTOR"
+          git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git add .
+          git diff --cached --quiet || git commit -m "chore: update Javadoc"
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

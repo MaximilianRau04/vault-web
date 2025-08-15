@@ -35,12 +35,11 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
      * @param wsHandler  the target WebSocket handler
      * @param attributes attributes shared across the handshake and WebSocket session
      * @return true to proceed with the handshake, false to reject it
-     * @throws Exception in case of errors
      */
     @Override
     public boolean beforeHandshake(
             ServerHttpRequest request, ServerHttpResponse response,
-            WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
+            WebSocketHandler wsHandler, Map<String, Object> attributes) {
 
         String token = null;
 

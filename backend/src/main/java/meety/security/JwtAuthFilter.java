@@ -16,23 +16,60 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * JWT authentication filter that intercepts incoming HTTP requests and validates JWT tokens.
+ * <p>
+ * This filter extracts the JWT token from the "Authorization" header (Bearer scheme),
+ * validates it using {@link JwtUtil}, and sets the authenticated user in the Spring Security context.
+ * Requests to "/api/auth/**" are excluded from authentication.
+ * </p>
+ * <p>
+ * This filter extends {@link OncePerRequestFilter}, ensuring it is executed once per request.
+ * </p>
+ */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final MyUserDetailsService userDetailsService;
 
+    /**
+     * Constructs a new {@code JwtAuthFilter} with the specified {@link JwtUtil} and {@link MyUserDetailsService}.
+     *
+     * @param jwtUtil            the utility class for JWT token operations (extracting username, validating token)
+     * @param userDetailsService the user details service to load user information by username
+     */
     public JwtAuthFilter(JwtUtil jwtUtil, MyUserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
 
+    /**
+     * Filters each HTTP request, performing JWT validation and setting authentication in the security context.
+     * <p>
+     * Steps:
+     * <ol>
+     *     <li>Skip requests starting with "/api/auth/".</li>
+     *     <li>Extract JWT from the "Authorization" header if it starts with "Bearer ".</li>
+     *     <li>Validate the token and extract the username.</li>
+     *     <li>Load user details and set authentication in the {@link SecurityContextHolder}.</li>
+     * </ol>
+     * If the token is invalid or expired, a 401 Unauthorized response is returned.
+     * </p>
+     *
+     * @param request     the incoming HTTP request
+     * @param response    the HTTP response
+     * @param filterChain the filter chain
+     * @throws ServletException if a servlet error occurs
+     * @throws IOException      if an I/O error occurs
+     */
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
+
         String path = request.getServletPath();
         if (path.startsWith("/api/auth/")) {
             filterChain.doFilter(request, response);
