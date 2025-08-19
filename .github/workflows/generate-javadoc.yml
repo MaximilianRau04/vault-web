@@ -25,19 +25,27 @@ jobs:
           java-version: '21'
 
       - name: Build project & generate Javadoc
-        working-directory: .
+        working-directory: backend
         run: |
-          cd backend
           ./mvnw clean javadoc:javadoc -Dmaven.javadoc.failOnError=false
-          rm -rf ../docs
-          mv target/reports/apidocs ../docs
+          mkdir -p /tmp/docs
+          cp -r target/reports/apidocs/* /tmp/docs/
 
-      - name: Commit and push changes
+      - name: Commit and push changes to gh-pages branch
         run: |
           git config --global user.name "$GITHUB_ACTOR"
           git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+          # Checkout or create gh-pages branch (orphan)
+          git fetch origin gh-pages || true
+          git checkout gh-pages || git checkout --orphan gh-pages
+
+          # Clean branch and add only docs
+          rm -rf *
+          cp -r /tmp/docs/* ./
+
           git add .
           git diff --cached --quiet || git commit -m "chore: update Javadoc"
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git main
+          git push --force https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git gh-pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
