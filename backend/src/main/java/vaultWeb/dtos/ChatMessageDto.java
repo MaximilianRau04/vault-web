@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatMessageDto {
-    private String content;
-    private String timestamp;
-    private Long groupId;
-    private Long privateChatId;
-    private Long senderId;
-    private String senderUsername;
+  private String content;
+  private String timestamp;
+  private Long groupId;
+  private Long privateChatId;
+  private Long senderId;
+  private String senderUsername;
 }

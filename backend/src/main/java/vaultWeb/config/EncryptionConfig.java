@@ -8,11 +8,11 @@ import vaultWeb.security.EncryptionUtil;
 @Configuration
 public class EncryptionConfig {
 
-    @Value("${encryption.master-key}")
-    private String masterKey;
+  @Value("${encryption.master-key}")
+  private String masterKey;
 
-    @Bean
-    public EncryptionUtil encryptionUtil() {
-        return new EncryptionUtil(masterKey);
-    }
+  @Bean
+  public EncryptionUtil encryptionUtil() {
+    return new EncryptionUtil(masterKey);
+  }
 }

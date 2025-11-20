@@ -17,73 +17,75 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 import vaultWeb.security.JwtUtil;
 
 /**
- * WebSocket configuration enabling STOMP messaging for real-time chat functionality.
- * Sets up the message broker with an in-memory topic destination and registers the
- * WebSocket endpoint with SockJS fallback support.
+ * WebSocket configuration enabling STOMP messaging for real-time chat functionality. Sets up the
+ * message broker with an in-memory topic destination and registers the WebSocket endpoint with
+ * SockJS fallback support.
  */
 @Configuration
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private final JwtUtil jwtUtil;
-    /**
-     * Configure message broker with a simple in-memory broker for topics and
-     * application destination prefix for incoming messages.
-     *
-     * @param config the message broker registry
-     */
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic", "/queue");
-        config.setApplicationDestinationPrefixes("/app");
-        config.setUserDestinationPrefix("/user");
-    }
+  private final JwtUtil jwtUtil;
 
-    /**
-     * Register STOMP WebSocket endpoint at "/ws-chat" with SockJS fallback and
-     * allow all origins (adjust for production).
-     *
-     * @param registry the STOMP endpoint registry
-     */
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-chat")
-                .addInterceptors(new JwtHandshakeInterceptor(jwtUtil))
-                .setAllowedOrigins("http://localhost:4200")
-                .withSockJS();
-    }
+  /**
+   * Configure message broker with a simple in-memory broker for topics and application destination
+   * prefix for incoming messages.
+   *
+   * @param config the message broker registry
+   */
+  @Override
+  public void configureMessageBroker(MessageBrokerRegistry config) {
+    config.enableSimpleBroker("/topic", "/queue");
+    config.setApplicationDestinationPrefixes("/app");
+    config.setUserDestinationPrefix("/user");
+  }
 
-    /**
-     * Configure the inbound channel for STOMP messages from clients.
-     * This method adds a ChannelInterceptor that intercepts incoming messages before
-     * they reach message-handling methods. During the CONNECT command, it extracts
-     * the JWT token from the "Authorization" header, validates it, and sets the
-     * corresponding Spring Security Authentication object as the user for the session.
-     * This enables per-user messaging and security checks for WebSocket messages.
-     *
-     * @param registration the client inbound channel registration
-     */
-    @Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new ChannelInterceptor() {
-            @Override
-            public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                StompHeaderAccessor accessor =
-                        MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+  /**
+   * Register STOMP WebSocket endpoint at "/ws-chat" with SockJS fallback and allow all origins
+   * (adjust for production).
+   *
+   * @param registry the STOMP endpoint registry
+   */
+  @Override
+  public void registerStompEndpoints(StompEndpointRegistry registry) {
+    registry
+        .addEndpoint("/ws-chat")
+        .addInterceptors(new JwtHandshakeInterceptor(jwtUtil))
+        .setAllowedOrigins("http://localhost:4200")
+        .withSockJS();
+  }
 
-                if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    String authHeader = accessor.getFirstNativeHeader("Authorization");
-                    if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                        String token = authHeader.substring(7);
-                        if (jwtUtil.validateToken(token)) {
-                            Authentication auth = jwtUtil.getAuthentication(token);
-                            accessor.setUser(auth);
-                        }
-                    }
+  /**
+   * Configure the inbound channel for STOMP messages from clients. This method adds a
+   * ChannelInterceptor that intercepts incoming messages before they reach message-handling
+   * methods. During the CONNECT command, it extracts the JWT token from the "Authorization" header,
+   * validates it, and sets the corresponding Spring Security Authentication object as the user for
+   * the session. This enables per-user messaging and security checks for WebSocket messages.
+   *
+   * @param registration the client inbound channel registration
+   */
+  @Override
+  public void configureClientInboundChannel(ChannelRegistration registration) {
+    registration.interceptors(
+        new ChannelInterceptor() {
+          @Override
+          public Message<?> preSend(Message<?> message, MessageChannel channel) {
+            StompHeaderAccessor accessor =
+                MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+
+            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+              String authHeader = accessor.getFirstNativeHeader("Authorization");
+              if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                if (jwtUtil.validateToken(token)) {
+                  Authentication auth = jwtUtil.getAuthentication(token);
+                  accessor.setUser(auth);
                 }
-                return message;
+              }
             }
+            return message;
+          }
         });
-    }
+  }
 }

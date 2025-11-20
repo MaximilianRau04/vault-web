@@ -6,5 +6,5 @@ import vaultWeb.models.PollVote;
 import vaultWeb.models.User;
 
 public interface PollVoteRepository extends JpaRepository<PollVote, Long> {
-    boolean existsByOption_PollAndUser(Poll poll, User user);
+  boolean existsByOption_PollAndUser(Poll poll, User user);
 }

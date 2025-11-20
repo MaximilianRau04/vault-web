@@ -9,9 +9,9 @@ import vaultWeb.models.User;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponseDto {
-    private String username;
+  private String username;
 
-    public UserResponseDto(User user) {
-        this.username = user.getUsername();
-    }
+  public UserResponseDto(User user) {
+    this.username = user.getUsername();
+  }
 }

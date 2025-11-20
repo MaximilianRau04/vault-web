@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GroupDto {
-    private String name;
-    private String description;
-    private Boolean isPublic;
+  private String name;
+  private String description;
+  private Boolean isPublic;
 }

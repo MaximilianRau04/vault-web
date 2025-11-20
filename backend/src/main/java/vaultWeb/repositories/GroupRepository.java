@@ -5,5 +5,4 @@ import org.springframework.stereotype.Repository;
 import vaultWeb.models.Group;
 
 @Repository
-public interface GroupRepository extends JpaRepository<Group, Long> {
-}
+public interface GroupRepository extends JpaRepository<Group, Long> {}

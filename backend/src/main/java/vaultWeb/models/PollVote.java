@@ -15,16 +15,16 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PollVote {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "poll_option_id")
-    @JsonBackReference
-    private PollOption option;
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "poll_option_id")
+  @JsonBackReference
+  private PollOption option;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id")
-    private User user;
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "user_id")
+  private User user;
 }

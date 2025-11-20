@@ -15,26 +15,26 @@ import vaultWeb.models.enums.Role;
 @Table(name = "group_members")
 public class GroupMember {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "group_id")
-    @JsonBackReference
-    private Group group;
+  @ManyToOne
+  @JoinColumn(name = "group_id")
+  @JsonBackReference
+  private Group group;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    @ToString.Exclude
-    private User user;
+  @ManyToOne
+  @JoinColumn(name = "user_id")
+  @ToString.Exclude
+  private User user;
 
-    @Enumerated(EnumType.STRING)
-    private Role role;
+  @Enumerated(EnumType.STRING)
+  private Role role;
 
-    public GroupMember(Group group, User user, Role role) {
-        this.group = group;
-        this.user = user;
-        this.role = role;
-    }
+  public GroupMember(Group group, User user, Role role) {
+    this.group = group;
+    this.user = user;
+    this.role = role;
+  }
 }
