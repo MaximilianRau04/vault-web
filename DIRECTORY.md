@@ -33,7 +33,12 @@
         - 📁 **exceptions**
           - 📄 [AdminAccessDeniedException.java](backend/src/main/java/vaultWeb/exceptions/AdminAccessDeniedException.java)
           - 📄 [AlreadyMemberException.java](backend/src/main/java/vaultWeb/exceptions/AlreadyMemberException.java)
+          - 📄 [AlreadyVotedException.java](backend/src/main/java/vaultWeb/exceptions/AlreadyVotedException.java)
+          - 📄 [DecryptionFailedException.java](backend/src/main/java/vaultWeb/exceptions/DecryptionFailedException.java)
           - 📄 [DuplicateUsernameException.java](backend/src/main/java/vaultWeb/exceptions/DuplicateUsernameException.java)
+          - 📄 [EncryptionFailedException.java](backend/src/main/java/vaultWeb/exceptions/EncryptionFailedException.java)
+          - 📄 [PollDoesNotBelongToGroupException.java](backend/src/main/java/vaultWeb/exceptions/PollDoesNotBelongToGroupException.java)
+          - 📄 [PollOptionNotFoundException.java](backend/src/main/java/vaultWeb/exceptions/PollOptionNotFoundException.java)
           - 📄 [GlobalExceptionHandler.java](backend/src/main/java/vaultWeb/exceptions/GlobalExceptionHandler.java)
           - 📄 [LastAdminException.java](backend/src/main/java/vaultWeb/exceptions/LastAdminException.java)
           - 📄 [UnauthorizedException.java](backend/src/main/java/vaultWeb/exceptions/UnauthorizedException.java)

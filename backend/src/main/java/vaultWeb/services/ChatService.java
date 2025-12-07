@@ -4,6 +4,8 @@ import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vaultWeb.dtos.ChatMessageDto;
+import vaultWeb.exceptions.DecryptionFailedException;
+import vaultWeb.exceptions.EncryptionFailedException;
 import vaultWeb.exceptions.notfound.GroupNotFoundException;
 import vaultWeb.exceptions.notfound.UserNotFoundException;
 import vaultWeb.models.ChatMessage;
@@ -57,7 +59,7 @@ public class ChatService {
    * @throws UserNotFoundException if the sender cannot be found by ID or username.
    * @throws GroupNotFoundException if neither groupId nor privateChatId is provided, or if the
    *     specified group/private chat does not exist.
-   * @throws RuntimeException if encryption fails.
+   * @throws EncryptionFailedException if encryption fails.
    */
   public ChatMessage saveMessage(ChatMessageDto dto) {
     User sender;
@@ -80,7 +82,7 @@ public class ChatService {
     try {
       encrypted = encryptionUtil.encrypt(dto.getContent());
     } catch (Exception e) {
-      throw new RuntimeException("Encryption failed", e);
+      throw new EncryptionFailedException("Encryption failed", e);
     }
 
     ChatMessage message = new ChatMessage();
@@ -125,13 +127,13 @@ public class ChatService {
    * @param cipherTextBase64 The encrypted message in Base64 encoding.
    * @param ivBase64 The initialization vector used during encryption, in Base64.
    * @return The decrypted plain text message.
-   * @throws RuntimeException if decryption fails.
+   * @throws DecryptionFailedException if decryption fails.
    */
   public String decrypt(String cipherTextBase64, String ivBase64) {
     try {
       return encryptionUtil.decrypt(cipherTextBase64, ivBase64);
     } catch (Exception e) {
-      throw new RuntimeException("Decryption failed", e);
+      throw new DecryptionFailedException("Decryption failed", e);
     }
   }
 }

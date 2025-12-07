@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import vaultWeb.dtos.ChatMessageDto;
 import vaultWeb.dtos.PrivateChatDto;
+import vaultWeb.exceptions.DecryptionFailedException;
 import vaultWeb.models.ChatMessage;
 import vaultWeb.models.PrivateChat;
 import vaultWeb.repositories.ChatMessageRepository;
@@ -74,7 +75,7 @@ public class PrivateChatController {
                     message.getSender().getId(),
                     message.getSender().getUsername());
               } catch (Exception e) {
-                throw new RuntimeException("Decryption failed", e);
+                throw new DecryptionFailedException("Decryption failed", e);
               }
             })
         .toList();

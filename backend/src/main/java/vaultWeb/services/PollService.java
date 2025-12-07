@@ -8,6 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vaultWeb.dtos.PollRequestDto;
 import vaultWeb.dtos.PollResponseDto;
+import vaultWeb.exceptions.AlreadyVotedException;
+import vaultWeb.exceptions.PollDoesNotBelongToGroupException;
+import vaultWeb.exceptions.PollOptionNotFoundException;
 import vaultWeb.exceptions.UnauthorizedException;
 import vaultWeb.exceptions.notfound.GroupNotFoundException;
 import vaultWeb.exceptions.notfound.NotMemberException;
@@ -131,7 +134,9 @@ public class PollService {
    * @throws GroupNotFoundException if the group does not exist
    * @throws NotMemberException if the user is not a member of the group
    * @throws PollNotFoundException if the poll does not exist
-   * @throws RuntimeException if the user has already voted or if the option/poll is invalid
+   * @throws PollDoesNotBelongToGroupException if the poll doesn't belong to the group
+   * @throws PollOptionNotFoundException if the poll option invalid
+   * @throws AlreadyVotedException if the user has already voted
    */
   public void vote(Long groupId, Long pollId, Long optionId, User user) {
     Group group =
@@ -148,17 +153,21 @@ public class PollService {
         pollRepository.findById(pollId).orElseThrow(() -> new PollNotFoundException(pollId));
 
     if (!poll.getGroup().getId().equals(groupId)) {
-      throw new RuntimeException("Poll does not belong to group");
+      throw new PollDoesNotBelongToGroupException(
+          "pollId: " + pollId + " does not belong to groupId: " + groupId);
     }
 
     PollOption option =
         poll.getOptions().stream()
             .filter(o -> o.getId().equals(optionId))
             .findFirst()
-            .orElseThrow(() -> new RuntimeException("PollOption not found in poll"));
+            .orElseThrow(
+                () ->
+                    new PollOptionNotFoundException(
+                        "optionId: " + optionId + " not found in pollId: " + pollId));
 
     if (pollVoteRepository.existsByOption_PollAndUser(poll, user)) {
-      throw new RuntimeException("User has already voted in this poll");
+      throw new AlreadyVotedException(pollId, user.getId());
     }
 
     PollVote vote = PollVote.builder().option(option).user(user).build();
@@ -181,13 +190,15 @@ public class PollService {
    * @return the updated Poll entity
    * @throws PollNotFoundException if the poll does not exist
    * @throws UnauthorizedException if the user is not the author
+   * @throws PollDoesNotBelongToGroupException if the poll doesn't belong to the group
    */
   public Poll updatePoll(Long groupId, Long pollId, User user, PollRequestDto pollDto) {
     Poll poll =
         pollRepository.findById(pollId).orElseThrow(() -> new PollNotFoundException(pollId));
 
     if (!poll.getGroup().getId().equals(groupId)) {
-      throw new RuntimeException("Poll does not belong to group");
+      throw new PollDoesNotBelongToGroupException(
+          "pollId: " + pollId + " does not belong to groupId: " + groupId);
     }
 
     if (!poll.getAuthor().getId().equals(user.getId())) {
@@ -221,13 +232,15 @@ public class PollService {
    * @param user the author of the poll
    * @throws PollNotFoundException if the poll does not exist
    * @throws UnauthorizedException if the user is not the author
+   * @throws PollDoesNotBelongToGroupException if the poll doesn't belong to the group
    */
   public void deletePoll(Long groupId, Long pollId, User user) {
     Poll poll =
         pollRepository.findById(pollId).orElseThrow(() -> new PollNotFoundException(pollId));
 
     if (!poll.getGroup().getId().equals(groupId)) {
-      throw new RuntimeException("Poll does not belong to group");
+      throw new PollDoesNotBelongToGroupException(
+          "pollId: " + pollId + " does not belong to groupId: " + groupId);
     }
 
     if (!poll.getAuthor().getId().equals(user.getId())) {

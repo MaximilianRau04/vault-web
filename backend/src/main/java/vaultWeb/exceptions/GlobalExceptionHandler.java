@@ -74,6 +74,39 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
   }
 
+  /** Handles AlreadyVotedException and returns 400 Bad Request. */
+  @ExceptionHandler(AlreadyVotedException.class)
+  public ResponseEntity<String> handleAlreadyVoted(AlreadyVotedException ex) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Poll error: " + ex.getMessage());
+  }
+
+  /** Handles DecryptionFailedException and returns 500 Internal Server Error. */
+  @ExceptionHandler(DecryptionFailedException.class)
+  public ResponseEntity<String> handleDecryptionFailed(DecryptionFailedException ex) {
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body("Chat error: " + ex.getMessage());
+  }
+
+  /** Handles EncryptionFailedException and returns 500 Internal Server Error. */
+  @ExceptionHandler(EncryptionFailedException.class)
+  public ResponseEntity<String> handleEncryptionFailed(EncryptionFailedException ex) {
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body("Chat error: " + ex.getMessage());
+  }
+
+  /** Handles PollDoesNotBelongToGroupException and returns 404 Not Found. */
+  @ExceptionHandler(PollDoesNotBelongToGroupException.class)
+  public ResponseEntity<String> handlePollDoesNotBelongToGroup(
+      PollDoesNotBelongToGroupException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Poll error: " + ex.getMessage());
+  }
+
+  /** Handles PollOptionNotFoundException and returns 404 Not Found. */
+  @ExceptionHandler(PollOptionNotFoundException.class)
+  public ResponseEntity<String> handlePollOptionNotFound(PollOptionNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Poll error: " + ex.getMessage());
+  }
+
   /** Handles any other RuntimeException and returns 500 Internal Server Error. */
   @ExceptionHandler(RuntimeException.class)
   public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
