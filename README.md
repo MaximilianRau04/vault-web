@@ -90,6 +90,17 @@ cd backend
 * API: [http://localhost:8080](http://localhost:8080)
 * Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
+### Timezone configuration (important for some environments)
+
+On some systems, the backend may fail to start because PostgreSQL rejects a deprecated JVM timezone identifier during startup.
+
+If you encounter an error like:
+
+```text
+FATAL: invalid value for parameter "TimeZone"
+```
+see common_problems.md for platform-specific troubleshooting and startup guidance.
+
 ---
 
 ## 5. Frontend (Angular)
