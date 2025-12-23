@@ -90,6 +90,24 @@ cd backend
 * API: [http://localhost:8080](http://localhost:8080)
 * Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
+### Timezone configuration (important for some environments)
+
+On some systems, the JVM may default to deprecated timezone identifiers (for example `Asia/Calcutta`), which PostgreSQL rejects during JDBC connection initialization.
+
+If the backend fails to start with an error similar to:
+
+```
+FATAL: invalid value for parameter "TimeZone"
+```
+
+explicitly configure the JVM timezone when running the backend. This ensures the PostgreSQL JDBC driver does not propagate deprecated timezone identifiers during connection startup.
+
+
+```bash
+JAVA_OPTS=-Duser.timezone=UTC
+./mvnw spring-boot:run
+```
+
 ---
 
 ## 5. Frontend (Angular)
