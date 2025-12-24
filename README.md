@@ -47,7 +47,7 @@ Vault Web uses **Docker** for local development.
 ```bash
 git clone https://github.com/Vault-Web/vault-web.git
 cd vault-web
-````
+```
 
 ---
 
@@ -99,7 +99,7 @@ If you encounter an error like:
 ```text
 FATAL: invalid value for parameter "TimeZone"
 ```
-see common_problems.md for platform-specific troubleshooting and startup guidance.
+see [common_problems.md](./common_problems.md) for platform-specific troubleshooting and startup guidance.
 
 ---
 
@@ -120,3 +120,10 @@ Open:
 
 This project is intended for **self-hosted and home-server environments**.
 Contributions and feedback are welcome.
+
+---
+
+## Troubleshooting
+
+If you encounter setup or startup issues that are not covered above,
+see [common_problems.md](./common_problems.md) for platform-specific guidance and fixes.
