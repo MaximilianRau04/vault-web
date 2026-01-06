@@ -4,6 +4,7 @@ import { Observable } from 'rxjs/internal/Observable';
 import { PrivateChatDto } from '../models/dtos/PrivateChatDto';
 import { environment } from '../../environments/environment';
 import { ChatMessageDto } from '../models/dtos/ChatMessageDto';
+import { DeviceDto } from '../models/dtos/DeviceDto';
 
 @Injectable({
   providedIn: 'root',
@@ -25,6 +26,12 @@ export class PrivateChatService {
   getMessages(privateChatId: number): Observable<ChatMessageDto[]> {
     return this.http.get<ChatMessageDto[]>(
       `${this.apiUrl}/private-chats/private?privateChatId=${privateChatId}`,
+    );
+  }
+
+  getDevices(privateChatId: number): Observable<DeviceDto[]> {
+    return this.http.get<DeviceDto[]>(
+      `${this.apiUrl}/private-chats/devices?privateChatId=${privateChatId}`,
     );
   }
 }

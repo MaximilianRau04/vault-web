@@ -59,6 +59,17 @@ export class WebSocketService {
     }
   }
 
+  sendGroupMessage(message: ChatMessageDto) {
+    if (this.connected) {
+      this.client?.publish({
+        destination: '/app/chat.send',
+        body: JSON.stringify(message),
+      });
+    } else {
+      console.warn('WebSocket not connected yet. Message not sent.');
+    }
+  }
+
   subscribeToPrivateMessages(): Observable<ChatMessageDto> {
     return new Observable((observer) => {
       const subscribeAction = () => {
@@ -86,6 +97,45 @@ export class WebSocketService {
   private subscribeInternal(observer: Observer<ChatMessageDto>) {
     const subscription = this.client?.subscribe(
       '/user/queue/private',
+      (message) => {
+        const msg = JSON.parse(message.body) as ChatMessageDto;
+        observer.next(msg);
+      },
+    );
+
+    return () => subscription?.unsubscribe();
+  }
+
+  subscribeToGroupMessages(groupId: number): Observable<ChatMessageDto> {
+    return new Observable((observer) => {
+      const subscribeAction = () => {
+        return this.subscribeToGroupInternal(groupId, observer);
+      };
+
+      let unsubscribeFn: (() => void) | undefined;
+
+      if (!this.connected) {
+        this.connectCallbacks.push(() => {
+          unsubscribeFn = subscribeAction();
+        });
+      } else {
+        unsubscribeFn = subscribeAction();
+      }
+
+      return () => {
+        if (unsubscribeFn) {
+          unsubscribeFn();
+        }
+      };
+    });
+  }
+
+  private subscribeToGroupInternal(
+    groupId: number,
+    observer: Observer<ChatMessageDto>,
+  ) {
+    const subscription = this.client?.subscribe(
+      `/topic/group/${groupId}`,
       (message) => {
         const msg = JSON.parse(message.body) as ChatMessageDto;
         observer.next(msg);

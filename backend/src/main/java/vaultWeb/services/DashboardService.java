@@ -15,7 +15,6 @@ import vaultWeb.dtos.dashboard.UserDashboardDto.MessagePreview;
 import vaultWeb.dtos.dashboard.UserDashboardDto.PollSummary;
 import vaultWeb.dtos.dashboard.UserDashboardDto.PrivateChatSummary;
 import vaultWeb.dtos.dashboard.UserDashboardDto.ProfileSummary;
-import vaultWeb.exceptions.DecryptionFailedException;
 import vaultWeb.exceptions.UnauthorizedException;
 import vaultWeb.models.ChatMessage;
 import vaultWeb.models.Group;
@@ -27,7 +26,6 @@ import vaultWeb.repositories.ChatMessageRepository;
 import vaultWeb.repositories.GroupMemberRepository;
 import vaultWeb.repositories.PollRepository;
 import vaultWeb.repositories.PrivateChatRepository;
-import vaultWeb.security.EncryptionUtil;
 
 /**
  * Aggregates all pieces of information a dashboard needs about a user so the frontend can render it
@@ -41,7 +39,6 @@ public class DashboardService {
   private final PrivateChatRepository privateChatRepository;
   private final PollRepository pollRepository;
   private final ChatMessageRepository chatMessageRepository;
-  private final EncryptionUtil encryptionUtil;
 
   /**
    * Builds the full dashboard payload for a given user.
@@ -122,7 +119,7 @@ public class DashboardService {
               ChatMessage lastMessage =
                   chatMessageRepository.findTop1ByPrivateChatOrderByTimestampDesc(chat);
               Instant lastTimestamp = lastMessage != null ? lastMessage.getTimestamp() : null;
-              String preview = decryptMessageSafely(lastMessage);
+              String preview = buildMessagePreview(lastMessage);
               return new PrivateChatSummary(chat.getId(), participant, preview, lastTimestamp);
             })
         .sorted(
@@ -165,7 +162,7 @@ public class DashboardService {
             message ->
                 new MessagePreview(
                     message.getId(),
-                    decryptMessageSafely(message),
+                    buildMessagePreview(message),
                     message.getTimestamp(),
                     message.getGroup() != null ? message.getGroup().getId() : null,
                     message.getPrivateChat() != null ? message.getPrivateChat().getId() : null))
@@ -184,15 +181,10 @@ public class DashboardService {
     return chat.getUser1() != null ? chat.getUser1().getUsername() : currentUser.getUsername();
   }
 
-  private String decryptMessageSafely(ChatMessage message) {
+  private String buildMessagePreview(ChatMessage message) {
     if (message == null) {
       return null;
     }
-
-    try {
-      return encryptionUtil.decrypt(message.getCipherText(), message.getIv());
-    } catch (Exception e) {
-      throw new DecryptionFailedException("Failed to decrypt message", e);
-    }
+    return "Encrypted message";
   }
 }

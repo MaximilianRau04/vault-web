@@ -5,9 +5,14 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vaultWeb.dtos.DeviceDto;
 import vaultWeb.dtos.GroupDto;
+import vaultWeb.exceptions.UnauthorizedException;
+import vaultWeb.exceptions.notfound.NotMemberException;
 import vaultWeb.models.Group;
 import vaultWeb.models.User;
+import vaultWeb.repositories.DeviceRepository;
+import vaultWeb.repositories.GroupMemberRepository;
 import vaultWeb.security.annotations.AdminOnly;
 import vaultWeb.services.GroupService;
 import vaultWeb.services.auth.AuthService;
@@ -26,6 +31,8 @@ public class GroupController {
 
   private final GroupService groupService;
   private final AuthService authService;
+  private final GroupMemberRepository groupMemberRepository;
+  private final DeviceRepository deviceRepository;
 
   /**
    * Retrieves all public groups.
@@ -62,6 +69,21 @@ public class GroupController {
   public ResponseEntity<List<User>> getGroupMembers(@PathVariable Long id) {
     List<User> members = groupService.getMembers(id);
     return ResponseEntity.ok(members);
+  }
+
+  @GetMapping("/{id}/devices")
+  public ResponseEntity<List<DeviceDto>> getGroupDevices(@PathVariable Long id) {
+    User currentUser = authService.getCurrentUser();
+    if (currentUser == null) {
+      throw new UnauthorizedException("User not authenticated");
+    }
+    if (groupMemberRepository.findByGroupIdAndUserId(id, currentUser.getId()).isEmpty()) {
+      throw new NotMemberException(id, currentUser.getId());
+    }
+    List<User> members = groupService.getMembers(id);
+    List<DeviceDto> devices =
+        deviceRepository.findByUserIn(members).stream().map(DeviceDto::from).toList();
+    return ResponseEntity.ok(devices);
   }
 
   /**
