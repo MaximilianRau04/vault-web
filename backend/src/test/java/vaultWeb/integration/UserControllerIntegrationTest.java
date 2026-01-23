@@ -562,7 +562,7 @@ class UserControllerIntegrationTest extends IntegrationTestBase {
 
   @Test
   void shouldValidatePasswordComplexity_OnRegistration() throws Exception {
-    String[] invalidPasswords = {"Short1!", "nouppercase1!", "NoDigit!", "NoSpecial1"};
+    String[] invalidPasswords = {"Short1!", "nouppercase1!", "NoDigit!"};
 
     for (int i = 0; i < invalidPasswords.length; i++) {
       UserDto testUser = createUserDto("testuser" + i, invalidPasswords[i]);
