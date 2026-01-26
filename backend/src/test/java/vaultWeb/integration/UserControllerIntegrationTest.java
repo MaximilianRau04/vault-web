@@ -1,6 +1,7 @@
 package vaultWeb.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -19,6 +20,7 @@ import vaultWeb.dtos.user.ChangePasswordRequest;
 import vaultWeb.dtos.user.UserDto;
 import vaultWeb.models.User;
 import vaultWeb.security.JwtUtil;
+import vaultWeb.support.TestJwtUtil;
 
 class UserControllerIntegrationTest extends IntegrationTestBase {
 
@@ -35,6 +37,7 @@ class UserControllerIntegrationTest extends IntegrationTestBase {
   // Test Dependencies (mockMvc, objectMapper, userRepository inherited from base)
   // ============================================================================
   @Autowired private JwtUtil jwtUtil;
+  @Autowired private TestJwtUtil testJwtUtil;
 
   /**
    * Creates a UserDto with the given username and password.
@@ -71,7 +74,9 @@ class UserControllerIntegrationTest extends IntegrationTestBase {
   private String extractTokenFromResponse(MvcResult result) throws Exception {
     String json = result.getResponse().getContentAsString();
     JsonNode node = objectMapper.readTree(json);
-    return node.get("token").asText();
+    JsonNode tokenNode = node.get("token");
+    assertNotNull(tokenNode, "Response JSON does not contain 'token' field");
+    return tokenNode.asText();
   }
 
   /**
@@ -225,6 +230,13 @@ class UserControllerIntegrationTest extends IntegrationTestBase {
         REFRESH_TOKEN_MAX_AGE_SECONDS,
         refreshTokenCookie.getMaxAge(),
         "refresh_token should expire in 30 days");
+
+    // Verify SameSite attribute via raw header (Cookie class doesn't expose SameSite)
+    String setCookieHeader = result.getResponse().getHeader("Set-Cookie");
+    assertNotNull(setCookieHeader, "Set-Cookie header should be present");
+    assertTrue(
+        setCookieHeader.contains("SameSite=None"),
+        "refresh_token should have SameSite=None for cross-origin requests");
   }
 
   // ============================================================================
@@ -313,7 +325,8 @@ class UserControllerIntegrationTest extends IntegrationTestBase {
     User savedUser = userRepository.findByUsername(testUser.getUsername()).get();
 
     // Generate an expired token (expired 1 hour ago)
-    String expiredToken = jwtUtil.generateTokenWithExpiration(savedUser, EXPIRED_TOKEN_OFFSET_MS);
+    String expiredToken =
+        testJwtUtil.generateTokenWithExpiration(savedUser, EXPIRED_TOKEN_OFFSET_MS);
 
     // Try to access protected endpoint with expired token
     org.springframework.http.ResponseEntity<String> response =
@@ -341,8 +354,9 @@ class UserControllerIntegrationTest extends IntegrationTestBase {
     // Verify the refresh token has been sent with the cookie
     Cookie newRefreshToken = extractCookie(result, "refresh_token");
     assertNotNull(newRefreshToken, "New refresh token should be set");
+    assertNotNull(newRefreshToken.getValue(), "新的刷新令牌应该有一个值");
     assertTrue(newRefreshToken.getValue().length() > 0, "New refresh token should have a value");
-    assertTrue(!newRefreshToken.getValue().equals(refreshToken), "Refresh token should be rotated");
+    assertNotEquals(newRefreshToken.getValue(), refreshToken, "Refresh token should be rotated");
 
     // Verify the old refresh token has been revoked in database
     String oldTokenId = jwtUtil.extractTokenId(refreshToken);

@@ -78,23 +78,6 @@ public class JwtUtil {
   }
 
   /**
-   * Generates a signed JWT token with custom expiration time (for testing purposes).
-   *
-   * @param user the user entity containing username and role
-   * @param expirationMillis expiration time in milliseconds from now (can be negative for expired
-   *     tokens)
-   * @return a signed JWT token string
-   */
-  public String generateTokenWithExpiration(User user, long expirationMillis) {
-    return Jwts.builder()
-        .setSubject(user.getUsername())
-        .setIssuedAt(new Date())
-        .setExpiration(new Date(System.currentTimeMillis() + expirationMillis))
-        .signWith(SECRET_KEY)
-        .compact();
-  }
-
-  /**
    * Extracts the username (subject) from the provided JWT token.
    *
    * <p>This method also validates the token's signature using the {@link #SECRET_KEY}. If the token
