@@ -2,7 +2,6 @@ package vaultWeb.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +20,10 @@ import vaultWeb.services.PrivateChatService;
 
 @RestController
 @RequestMapping("/api/private-chats")
-@Tag(name = "Private Chat Controller", description = "Handles private chats between users, including chat creation and message retrieval")
+@Tag(
+    name = "Private Chat Controller",
+    description =
+        "Handles private chats between users, including chat creation and message retrieval")
 @RequiredArgsConstructor
 public class PrivateChatController {
 
@@ -30,15 +32,16 @@ public class PrivateChatController {
   private final EncryptionUtil encryptionUtil;
 
   @GetMapping("/between")
-  @Operation(summary = "Get or create a private chat between two users", description = """
-      This endpoint retrieves an existing private chat between two users, or creates a new one if it does not exist.
-      - 'sender' and 'receiver' are the usernames of the users.
-      - Returns a PrivateChatDto containing the chat ID and the usernames of both participants.
-      """)
-
-  @ApiResponses({ @ApiResponse(responseCode = "200", description = "Private chat created or retrieved successfully."),
-      @ApiResponse(responseCode = "401", description = "Unauthorized request. You must provide an authentication token.")
-  })
+  @Operation(
+      summary = "Get or create a private chat between two users",
+      description =
+          """
+                    This endpoint retrieves an existing private chat between two users, or creates a new one if it does not exist.
+                    - 'sender' and 'receiver' are the usernames of the users.
+                    - Returns a PrivateChatDto containing the chat ID and the usernames of both participants.
+                    """)
+  @ApiResponse(responseCode = "200", description = "Private chat created or retrieved successfully.")
+  @ApiResponse(responseCode = "401", description = "Unauthorized request. You must provide an authentication token.")
   public PrivateChatDto getOrCreatePrivateChat(
       @RequestParam String sender, @RequestParam String receiver) {
     PrivateChat chat = privateChatService.getOrCreatePrivateChat(sender, receiver);
@@ -47,25 +50,28 @@ public class PrivateChatController {
   }
 
   @GetMapping("/private")
-  @Operation(summary = "Get all messages of a private chat", description = """
-      Retrieves all messages from a specific private chat.
-      - 'privateChatId' is the ID of the private chat.
-      - Messages are ordered chronologically by timestamp.
-      - The message content is decrypted before being sent to the client.
-      - Returns a list of ChatMessageDto containing decrypted content, sender info, timestamp, and chat ID.
-      """)
-  @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "Messages from private chat have been retrieved successfully."),
-      @ApiResponse(responseCode = "401", description = "Unauthorized request. You must provide an authentication token.")
-  })
+  @Operation(
+      summary = "Get all messages of a private chat",
+      description =
+          """
+                    Retrieves all messages from a specific private chat.
+                    - 'privateChatId' is the ID of the private chat.
+                    - Messages are ordered chronologically by timestamp.
+                    - The message content is decrypted before being sent to the client.
+                    - Returns a list of ChatMessageDto containing decrypted content, sender info, timestamp, and chat ID.
+                    """)
+  @ApiResponse(responseCode = "200", description = "Messages from private chat have been retrieved successfully.")
+  @ApiResponse(responseCode = "401", description = "Unauthorized request. You must provide an authentication token.")
   public List<ChatMessageDto> getPrivateChatMessages(@RequestParam Long privateChatId) {
-    List<ChatMessage> messages = chatMessageRepository.findByPrivateChatIdOrderByTimestampAsc(privateChatId);
+    List<ChatMessage> messages =
+        chatMessageRepository.findByPrivateChatIdOrderByTimestampAsc(privateChatId);
 
     return messages.stream()
         .map(
             message -> {
               try {
-                String decryptedContent = encryptionUtil.decrypt(message.getCipherText(), message.getIv());
+                String decryptedContent =
+                    encryptionUtil.decrypt(message.getCipherText(), message.getIv());
                 return new ChatMessageDto(
                     decryptedContent,
                     message.getTimestamp().toString(),
