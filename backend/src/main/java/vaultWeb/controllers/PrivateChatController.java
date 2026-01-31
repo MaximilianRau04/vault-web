@@ -40,8 +40,12 @@ public class PrivateChatController {
                     - 'sender' and 'receiver' are the usernames of the users.
                     - Returns a PrivateChatDto containing the chat ID and the usernames of both participants.
                     """)
-  @ApiResponse(responseCode = "200", description = "Private chat created or retrieved successfully.")
-  @ApiResponse(responseCode = "401", description = "Unauthorized request. You must provide an authentication token.")
+  @ApiResponse(
+      responseCode = "200",
+      description = "Private chat created or retrieved successfully.")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public PrivateChatDto getOrCreatePrivateChat(
       @RequestParam String sender, @RequestParam String receiver) {
     PrivateChat chat = privateChatService.getOrCreatePrivateChat(sender, receiver);
@@ -60,8 +64,12 @@ public class PrivateChatController {
                     - The message content is decrypted before being sent to the client.
                     - Returns a list of ChatMessageDto containing decrypted content, sender info, timestamp, and chat ID.
                     """)
-  @ApiResponse(responseCode = "200", description = "Messages from private chat have been retrieved successfully.")
-  @ApiResponse(responseCode = "401", description = "Unauthorized request. You must provide an authentication token.")
+  @ApiResponse(
+      responseCode = "200",
+      description = "Messages from private chat have been retrieved successfully.")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public List<ChatMessageDto> getPrivateChatMessages(@RequestParam Long privateChatId) {
     List<ChatMessage> messages =
         chatMessageRepository.findByPrivateChatIdOrderByTimestampAsc(privateChatId);

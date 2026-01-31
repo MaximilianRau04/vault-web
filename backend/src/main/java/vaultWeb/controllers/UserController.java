@@ -41,7 +41,10 @@ public class UserController {
                             The new user is assigned the default role 'User'.""")
   @ApiRateLimit(capacity = 5, refillTokens = 5, refillDurationMinutes = 1, useIpAddress = true)
   @ApiResponse(responseCode = "200", description = "User registered successfully")
-  @ApiResponse(responseCode = "400", description = "Password does not meet requirements. It must contain at least one uppercase letter and one digit.")
+  @ApiResponse(
+      responseCode = "400",
+      description =
+          "Password does not meet requirements. It must contain at least one uppercase letter and one digit.")
   @ApiResponse(responseCode = "409", description = "Username already exists.")
   public ResponseEntity<String> register(@Valid @RequestBody UserDto user) {
     userService.registerUser(new User(user));
@@ -154,7 +157,9 @@ public class UserController {
       description =
           "Returns a list of all users with basic info (e.g., usernames) for displaying in the chat list.")
   @ApiResponse(responseCode = "200", description = "List of all users retrieved successfully.")
-  @ApiResponse(responseCode = "401", description = "Unauthorized request. You must provide an authentication token.")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public ResponseEntity<List<UserResponseDto>> getAllUsers() {
     List<UserResponseDto> users =
         userService.getAllUsers().stream().map(UserResponseDto::new).toList();
@@ -168,7 +173,10 @@ public class UserController {
       description =
           "User must provide the current password. The new password must meet the platform requirements.")
   @ApiResponse(responseCode = "204", description = "Password changed successfully.")
-  @ApiResponse(responseCode = "401", description = "Unauthorized request. You must provide an authentication token along with the correct current password.")
+  @ApiResponse(
+      responseCode = "401",
+      description =
+          "Unauthorized request. You must provide an authentication token along with the correct current password.")
   public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
     User currentUser = authService.getCurrentUser();
     if (currentUser == null) {
