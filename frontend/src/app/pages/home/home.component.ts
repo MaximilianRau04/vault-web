@@ -17,12 +17,17 @@ import { Router } from '@angular/router';
 })
 export class HomeComponent implements OnInit {
   users: UserDto[] = [];
+  privateChats: PrivateChatDto[] = [];
   isLoading = true;
   error: string | null = null;
   selectedUsername: string | null = null;
   privateChatId: number | null = null;
 
   currentUsername: string | null = null;
+  isEditMode = false;
+  selectedChatIds: Set<number> = new Set();
+  showClearConfirmDialog = false;
+  isProcessing = false;
 
   constructor(
     private userService: UserService,
@@ -40,7 +45,7 @@ export class HomeComponent implements OnInit {
       this.isLoading = false;
       return;
     }
-
+/*
     this.userService.getAllUsers().subscribe({
       next: (data) => {
         this.users = data;
@@ -51,6 +56,26 @@ export class HomeComponent implements OnInit {
         this.isLoading = false;
       },
     });
+ */
+
+    this.loadData();
+  }
+
+  private loadData() {
+    this.isLoading = true;
+
+    Promise.all([
+      this.userService.getAllUsers().toPromise(),
+      this.privateChatService.getUserPrivateChats().toPromise()
+    ]).then(([users,chats]) => {
+      this.users = users || [];
+      this.privateChats = chats || [];
+      this.isLoading = false;
+      }
+    ).catch(()=>{
+      this.error = 'Failed to Load data.';
+      this.isLoading = false;
+    })
   }
 
   openChat(username: string): void {
@@ -74,4 +99,81 @@ export class HomeComponent implements OnInit {
     this.selectedUsername = null;
     this.privateChatId = null;
   }
+
+  toggleEditMode() {
+    this.isEditMode = !this.isEditMode;
+    if(!this.isEditMode) {
+      this.selectedChatIds.clear();
+    }
+  }
+
+  toggleChatSelection(chatId: number) {
+    if(this.selectedChatIds.has(chatId)) {
+      this.selectedChatIds.delete(chatId);
+    } else {
+      this.selectedChatIds.add(chatId);
+    }
+  }
+
+  isChatSelected(chatId: number): boolean {
+    return this.selectedChatIds.has(chatId);
+  }
+  hasSelectedChats(){
+    console.log("Selected items size " + this.selectedChatIds.size);
+    return this.selectedChatIds.size > 0;
+  }
+  openPrivateChat(chat: PrivateChatDto) {
+    if(this.isEditMode) return ; //Don't open chat in edit mode
+    if (!this.currentUsername) return;
+
+    //get other user info
+    const otherUserName =
+      (chat.username1 === this.currentUsername) ? chat.username2 : chat.username1;
+    this.selectedUsername = otherUserName;
+    this.privateChatId = chat.id;
+
+  }
+
+  getOtherUsername(chat: PrivateChatDto): string {
+    if (!this.currentUsername) return '';
+
+    //get other user info
+    return (chat.username1 === this.currentUsername)
+      ? chat.username2
+      : chat.username1;
+
+  }
+
+  openClearConfirmDialog() {
+    if(this.hasSelectedChats()){
+      this.showClearConfirmDialog = true;
+    }
+  }
+
+  cancelDialog() {
+    this.showClearConfirmDialog = false;
+  }
+
+  confirmClearChats() {
+    this.isProcessing = true;
+    const chatIds = Array.from(this.selectedChatIds);
+    this.privateChatService.clearMultiplePrivateChats(chatIds).subscribe(
+      {
+        next: (response) => {
+          this.showClearConfirmDialog = false;
+          this.selectedChatIds.clear();
+          this.isProcessing = false;
+          this.isEditMode = false;
+          //Reload data to reflect changes
+          this.loadData();
+        },
+        error: (err) =>{
+          console.error('Failed to clear chats ', err);
+          this.error = 'Failed to clear chats. Please try again.';
+          this.isProcessing = false;
+        }
+      }
+    );
+  }
+
 }

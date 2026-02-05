@@ -1,11 +1,17 @@
 package vaultWeb.services;
 
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import vaultWeb.exceptions.UnauthorizedException;
+import vaultWeb.exceptions.notfound.PrivateChatNotFoundException;
 import vaultWeb.exceptions.notfound.UserNotFoundException;
 import vaultWeb.models.PrivateChat;
 import vaultWeb.models.User;
+import vaultWeb.repositories.ChatMessageRepository;
 import vaultWeb.repositories.PrivateChatRepository;
 import vaultWeb.repositories.UserRepository;
 
@@ -17,9 +23,11 @@ import vaultWeb.repositories.UserRepository;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PrivateChatService {
 
   private final PrivateChatRepository privateChatRepository;
+  private final ChatMessageRepository chatMessageRepository;
   private final UserRepository userRepository;
 
   /**
@@ -58,5 +66,30 @@ public class PrivateChatService {
 
     // Save and return the new private chat
     return privateChatRepository.save(privateChat);
+  }
+
+  @Transactional
+    public int clearMultipleChats(List<Long> privateChatIds, String currentUsername) {
+      User currentUser = userRepository.findByUsername(currentUsername).orElseThrow(()->new UserNotFoundException("User not found: " + currentUsername));
+      int totalCount = 0;
+      for (Long privateChatId : privateChatIds) {
+        PrivateChat chat = privateChatRepository.findById(privateChatId).orElseThrow(()-> new PrivateChatNotFoundException("No private chat with this id " + privateChatId));
+
+        //verify if user is part of this chat
+        if(! (chat.getUser1().getId().equals(currentUser.getId()) || chat.getUser2().getId().equals(currentUser.getId()))) {
+          throw new UnauthorizedException("You are not allowed to delete a private chat with this id " + privateChatId);
+        }
+
+        int count  = chatMessageRepository.deleteByPrivateChat(chat);
+        totalCount += count;
+        log.info("Cleared {} messages from private chat {}", count, privateChatId);
+
+      }
+      return totalCount;
+    }
+
+  public List<PrivateChat> getUserPrivateChats(String username) {
+    User user = userRepository.findByUsername(username).orElseThrow(()->new UserNotFoundException("User not found: " + username));
+    return privateChatRepository.findByUser1OrUser2(user, user);
   }
 }

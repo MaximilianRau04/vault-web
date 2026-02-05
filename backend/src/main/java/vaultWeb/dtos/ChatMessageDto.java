@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class ChatMessageDto {
   @NotBlank private String content;
   private String timestamp;
-  @NotNull private Long groupId;
+  private Long groupId;
   private Long privateChatId;
   private Long senderId;
   private String senderUsername;

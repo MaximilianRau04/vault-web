@@ -4,6 +4,7 @@ import { Observable } from 'rxjs/internal/Observable';
 import { PrivateChatDto } from '../models/dtos/PrivateChatDto';
 import { environment } from '../../environments/environment';
 import { ChatMessageDto } from '../models/dtos/ChatMessageDto';
+import {BatchOperationResponse} from '../models/dtos/BatchOperationResponse';
 
 @Injectable({
   providedIn: 'root',
@@ -26,5 +27,20 @@ export class PrivateChatService {
     return this.http.get<ChatMessageDto[]>(
       `${this.apiUrl}/private-chats/private?privateChatId=${privateChatId}`,
     );
+  }
+
+  getUserPrivateChats(){
+    return this.http.get<PrivateChatDto[]>(
+      `${this.apiUrl}/private-chats/user-chats`
+    );
+  }
+
+  clearMultiplePrivateChats(privatechatIds : number[]){
+    return this.http.delete<BatchOperationResponse>(
+      `${this.apiUrl}/private-chats/clear-multiple`,
+      {
+        body: privatechatIds
+      }
+    )
   }
 }

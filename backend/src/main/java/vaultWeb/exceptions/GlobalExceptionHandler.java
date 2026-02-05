@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import vaultWeb.exceptions.notfound.GroupNotFoundException;
 import vaultWeb.exceptions.notfound.NotMemberException;
+import vaultWeb.exceptions.notfound.PrivateChatNotFoundException;
 import vaultWeb.exceptions.notfound.UserNotFoundException;
 
 /**
@@ -28,6 +29,12 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(GroupNotFoundException.class)
   public ResponseEntity<String> handleGroupNotFound(GroupNotFoundException ex) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Group not found: " + ex.getMessage());
+  }
+
+  /** Handles PrivateChatNotFoundException and returns 404 Not Found. */
+  @ExceptionHandler(PrivateChatNotFoundException.class)
+  public ResponseEntity<String> handleGroupNotFound(PrivateChatNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Private Chat not found: " + ex.getMessage());
   }
 
   /** Handles UnauthorizedException and returns 401 Unauthorized. */
