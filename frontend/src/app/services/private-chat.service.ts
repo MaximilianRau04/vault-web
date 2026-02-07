@@ -1,11 +1,11 @@
-import {HttpClient} from '@angular/common/http';
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs/internal/Observable';
-import {PrivateChatDto} from '../models/dtos/PrivateChatDto';
-import {environment} from '../../environments/environment';
-import {ChatMessageDto} from '../models/dtos/ChatMessageDto';
-import {BatchOperationResponse} from '../models/dtos/BatchOperationResponse';
-import {CreateGroupFromChatsRequest} from '../models/dtos/CreateGroupFromChatsRequest';
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/internal/Observable';
+import { PrivateChatDto } from '../models/dtos/PrivateChatDto';
+import { environment } from '../../environments/environment';
+import { ChatMessageDto } from '../models/dtos/ChatMessageDto';
+import { BatchOperationResponse } from '../models/dtos/BatchOperationResponse';
+import { CreateGroupFromChatsRequest } from '../models/dtos/CreateGroupFromChatsRequest';
 
 @Injectable({
   providedIn: 'root',
@@ -13,8 +13,7 @@ import {CreateGroupFromChatsRequest} from '../models/dtos/CreateGroupFromChatsRe
 export class PrivateChatService {
   private apiUrl = environment.mainApiUrl;
 
-  constructor(private http: HttpClient) {
-  }
+  constructor(private http: HttpClient) {}
 
   getOrCreatePrivateChat(
     username1: string,
@@ -33,7 +32,7 @@ export class PrivateChatService {
 
   getUserPrivateChats() {
     return this.http.get<PrivateChatDto[]>(
-      `${this.apiUrl}/private-chats/user-chats`
+      `${this.apiUrl}/private-chats/user-chats`,
     );
   }
 
@@ -41,16 +40,24 @@ export class PrivateChatService {
     return this.http.delete<BatchOperationResponse>(
       `${this.apiUrl}/private-chats/clear-multiple`,
       {
-        body: privatechatIds
-      }
-    )
+        body: privatechatIds,
+      },
+    );
   }
 
-  createGroupFromChats(privateChatIds: number[], groupName: string, description: string) {
-    const request: CreateGroupFromChatsRequest = {privateChatIds, groupName, description};
+  createGroupFromChats(
+    privateChatIds: number[],
+    groupName: string,
+    description: string,
+  ) {
+    const request: CreateGroupFromChatsRequest = {
+      privateChatIds,
+      groupName,
+      description,
+    };
     return this.http.post<BatchOperationResponse>(
       `${this.apiUrl}/private-chats/create-group-from-chats`,
-      request
+      request,
     );
   }
 }

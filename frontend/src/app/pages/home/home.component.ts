@@ -1,13 +1,13 @@
-import {Component, OnInit} from '@angular/core';
-import {UserService} from '../../services/user.service';
-import {UserDto} from '../../models/dtos/UserDto';
-import {CommonModule} from '@angular/common';
-import {PrivateChatDialogComponent} from '../private-chat-dialog/private-chat-dialog.component';
-import {PrivateChatService} from '../../services/private-chat.service';
-import {PrivateChatDto} from '../../models/dtos/PrivateChatDto';
-import {AuthService} from '../../services/auth.service';
-import {Router} from '@angular/router';
-import {FormsModule} from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
+import { UserService } from '../../services/user.service';
+import { UserDto } from '../../models/dtos/UserDto';
+import { CommonModule } from '@angular/common';
+import { PrivateChatDialogComponent } from '../private-chat-dialog/private-chat-dialog.component';
+import { PrivateChatService } from '../../services/private-chat.service';
+import { PrivateChatDto } from '../../models/dtos/PrivateChatDto';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-home',
@@ -38,8 +38,7 @@ export class HomeComponent implements OnInit {
     private privateChatService: PrivateChatService,
     private authService: AuthService,
     private router: Router,
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
     this.currentUsername = this.authService.getUsername();
@@ -71,16 +70,17 @@ export class HomeComponent implements OnInit {
 
     Promise.all([
       this.userService.getAllUsers().toPromise(),
-      this.privateChatService.getUserPrivateChats().toPromise()
-    ]).then(([users, chats]) => {
+      this.privateChatService.getUserPrivateChats().toPromise(),
+    ])
+      .then(([users, chats]) => {
         this.users = users || [];
         this.privateChats = chats || [];
         this.isLoading = false;
-      }
-    ).catch(() => {
-      this.error = 'Failed to Load data.';
-      this.isLoading = false;
-    })
+      })
+      .catch(() => {
+        this.error = 'Failed to Load data.';
+        this.isLoading = false;
+      });
   }
 
   openChat(username: string): void {
@@ -125,7 +125,7 @@ export class HomeComponent implements OnInit {
   }
 
   hasSelectedChats() {
-    console.log("Selected items size " + this.selectedChatIds.size);
+    console.log('Selected items size ' + this.selectedChatIds.size);
     return this.selectedChatIds.size > 0;
   }
 
@@ -135,20 +135,18 @@ export class HomeComponent implements OnInit {
 
     //get other user info
     const otherUserName =
-      (chat.username1 === this.currentUsername) ? chat.username2 : chat.username1;
+      chat.username1 === this.currentUsername ? chat.username2 : chat.username1;
     this.selectedUsername = otherUserName;
     this.privateChatId = chat.id;
-
   }
 
   getOtherUsername(chat: PrivateChatDto): string {
     if (!this.currentUsername) return '';
 
     //get other user info
-    return (chat.username1 === this.currentUsername)
+    return chat.username1 === this.currentUsername
       ? chat.username2
       : chat.username1;
-
   }
 
   openClearConfirmDialog() {
@@ -167,29 +165,27 @@ export class HomeComponent implements OnInit {
   confirmClearChats() {
     this.isProcessing = true;
     const chatIds = Array.from(this.selectedChatIds);
-    this.privateChatService.clearMultiplePrivateChats(chatIds).subscribe(
-      {
-        next: (response) => {
-          this.showClearConfirmDialog = false;
-          this.selectedChatIds.clear();
-          this.isProcessing = false;
-          this.isEditMode = false;
-          //Reload data to reflect changes
-          this.loadData();
-        },
-        error: (err) => {
-          console.error('Failed to clear chats ', err);
-          this.error = 'Failed to clear chats. Please try again.';
-          this.isProcessing = false;
-        }
-      }
-    );
+    this.privateChatService.clearMultiplePrivateChats(chatIds).subscribe({
+      next: (response) => {
+        this.showClearConfirmDialog = false;
+        this.selectedChatIds.clear();
+        this.isProcessing = false;
+        this.isEditMode = false;
+        //Reload data to reflect changes
+        this.loadData();
+      },
+      error: (err) => {
+        console.error('Failed to clear chats ', err);
+        this.error = 'Failed to clear chats. Please try again.';
+        this.isProcessing = false;
+      },
+    });
   }
 
   openCreateGroupDialog() {
     if (this.hasSelectedChats()) {
       this.showGroupDialog = true;
-      this.newGroupName = ''
+      this.newGroupName = '';
     }
   }
 
@@ -199,10 +195,11 @@ export class HomeComponent implements OnInit {
     }
     this.isProcessing = true;
     const chatIds = Array.from(this.selectedChatIds);
-    this.privateChatService.createGroupFromChats(chatIds, this.newGroupName, this.groupDescription)
+    this.privateChatService
+      .createGroupFromChats(chatIds, this.newGroupName, this.groupDescription)
       .subscribe({
-        next: (respose => {
-          console.log("Group created: ", respose.groupId);
+        next: (respose) => {
+          console.log('Group created: ', respose.groupId);
           this.showGroupDialog = false;
           this.isProcessing = false;
           this.isEditMode = false;
@@ -210,11 +207,11 @@ export class HomeComponent implements OnInit {
           this.groupDescription = '';
           this.selectedChatIds.clear();
           this.loadData();
-        }),
-        error: (err => {
-          this.error = "Failed to create group. Please Try again."
+        },
+        error: (err) => {
+          this.error = 'Failed to create group. Please Try again.';
           this.isProcessing = false;
-        })
-      })
+        },
+      });
   }
 }
