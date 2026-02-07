@@ -3,11 +3,8 @@ package vaultWeb.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -100,50 +97,58 @@ public class PrivateChatController {
 
   @GetMapping("/user-chats")
   @Operation(
-          summary = "Get all private chats for the current user",
-          description = "Retrieves all private chats where the current user is a participant")
+      summary = "Get all private chats for the current user",
+      description = "Retrieves all private chats where the current user is a participant")
   public List<PrivateChatDto> getUserChats(Authentication authentication) {
     String username = authentication.getName();
     List<PrivateChat> privateChats = privateChatService.getUserPrivateChats(username);
 
-    List<PrivateChatDto> privateChatDtos = privateChats.stream()
-            .map(chat -> new PrivateChatDto(
-                    chat.getId(),
-                    chat.getUser1().getUsername(),
-                    chat.getUser2().getUsername()
-            )).toList();
+    List<PrivateChatDto> privateChatDtos =
+        privateChats.stream()
+            .map(
+                chat ->
+                    new PrivateChatDto(
+                        chat.getId(), chat.getUser1().getUsername(), chat.getUser2().getUsername()))
+            .toList();
     return privateChatDtos;
   }
 
   @DeleteMapping("/clear-multiple")
   @Operation(
-          summary = "Clear message from Multiple Chats",
-          description = "Delete all message from the selected private chats"
-  )
+      summary = "Clear message from Multiple Chats",
+      description = "Delete all message from the selected private chats")
   @ApiResponse(responseCode = "200", description = "Message Cleared Successfully")
   @ApiResponse(responseCode = "401", description = "Unauthorized, user need to valid token")
   @ApiResponse(responseCode = "403", description = "User not authorized to clear those chats")
-  public BatchOperationDto clearMultipleChats( @RequestBody List<Long> privateChatIds, Authentication authentication){
+  public BatchOperationDto clearMultipleChats(
+      @RequestBody List<Long> privateChatIds, Authentication authentication) {
     String currentUsername = authentication.getName();
-    int deleteCount = privateChatService.clearMultipleChats(privateChatIds,currentUsername);
+    int deleteCount = privateChatService.clearMultipleChats(privateChatIds, currentUsername);
     return BatchOperationDto.builder()
-            .success(true)
-            .message("Successfully cleared multiple chats.")
-            .affectedCount(deleteCount)
-            .build();
+        .success(true)
+        .message("Successfully cleared multiple chats.")
+        .affectedCount(deleteCount)
+        .build();
   }
 
   @PostMapping("/create-group-from-chats")
   @Operation(
-          summary = "Create a group from multiple private chats",
-          description = "Combines all participants from selected private chats into a new group")
-  public BatchOperationDto createGroupFromChats(@Valid @RequestBody CreateGroupFromChatsRequest groupCreationRequest, Authentication authentication){
+      summary = "Create a group from multiple private chats",
+      description = "Combines all participants from selected private chats into a new group")
+  public BatchOperationDto createGroupFromChats(
+      @Valid @RequestBody CreateGroupFromChatsRequest groupCreationRequest,
+      Authentication authentication) {
     String currentUsername = authentication.getName();
-    Long groupId = privateChatService.createGroupFromChats(groupCreationRequest.getPrivateChatIds(),groupCreationRequest.getGroupName(),groupCreationRequest.getDescription(),currentUsername);
+    Long groupId =
+        privateChatService.createGroupFromChats(
+            groupCreationRequest.getPrivateChatIds(),
+            groupCreationRequest.getGroupName(),
+            groupCreationRequest.getDescription(),
+            currentUsername);
     return BatchOperationDto.builder()
-            .success(true)
-            .message("Successfully created group from chats.")
-            .groupId(groupId)
-            .build();
+        .success(true)
+        .message("Successfully created group from chats.")
+        .groupId(groupId)
+        .build();
   }
 }

@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.*;
 import vaultWeb.dtos.GroupDto;
 

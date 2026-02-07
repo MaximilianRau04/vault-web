@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class BatchOperationDto {
-    boolean success;
-    String message;
-    int affectedCount;
-    Long groupId;
+  boolean success;
+  String message;
+  int affectedCount;
+  Long groupId;
 }

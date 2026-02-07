@@ -17,5 +17,5 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
   ChatMessage findTop1ByPrivateChatOrderByTimestampDesc(PrivateChat privateChat);
 
-    int deleteByPrivateChat(PrivateChat privateChat);
+  int deleteByPrivateChat(PrivateChat privateChat);
 }

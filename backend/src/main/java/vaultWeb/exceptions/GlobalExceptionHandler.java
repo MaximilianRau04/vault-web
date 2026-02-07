@@ -34,7 +34,8 @@ public class GlobalExceptionHandler {
   /** Handles PrivateChatNotFoundException and returns 404 Not Found. */
   @ExceptionHandler(PrivateChatNotFoundException.class)
   public ResponseEntity<String> handleGroupNotFound(PrivateChatNotFoundException ex) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Private Chat not found: " + ex.getMessage());
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body("Private Chat not found: " + ex.getMessage());
   }
 
   /** Handles UnauthorizedException and returns 401 Unauthorized. */
