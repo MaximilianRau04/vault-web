@@ -124,7 +124,7 @@ export class PrivateChatDialogComponent
     const query = this.searchQuery.trim().toLowerCase();
 
     if (!query) {
-      this.filteredMessages = this.messages;
+      this.filteredMessages = [...this.messages];
       return;
     }
 
