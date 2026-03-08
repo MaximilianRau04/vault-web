@@ -117,6 +117,7 @@ export class PrivateChatDialogComponent
     } else {
       this.searchQuery = '';
       this.applySearch(); // reset filteredMessages to all messages
+      this.shouldScroll = true;
     }
   }
 
