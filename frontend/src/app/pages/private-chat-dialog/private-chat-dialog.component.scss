@@ -9,9 +9,38 @@
 }
 
 button {
+  color: var(--color-text-secondary);
+}
+
+.search-toggle-btn {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  color: var(--color-text-secondary);
+
   &:hover {
-    color: #ef4444; /* Red stays consistent */
+    color: var(--color-primary);
+    background-color: var(--color-surface-hover);
   }
+
+  &.is-active {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    background-color: var(--color-background-secondary);
+  }
+}
+
+.close-chat-btn {
+  color: var(--color-text-secondary);
+
+  &:hover {
+    color: #ef4444;
+  }
+}
+
+.search-bar {
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-background-secondary);
 }
 
 .flex-1.overflow-y-auto {
