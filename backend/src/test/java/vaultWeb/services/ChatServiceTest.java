@@ -11,7 +11,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import vaultWeb.dtos.ChatMessageDto;
-import vaultWeb.exceptions.DecryptionFailedException;
 import vaultWeb.exceptions.EncryptionFailedException;
 import vaultWeb.exceptions.notfound.GroupNotFoundException;
 import vaultWeb.exceptions.notfound.UserNotFoundException;
@@ -23,10 +22,14 @@ import vaultWeb.repositories.ChatMessageRepository;
 import vaultWeb.repositories.GroupRepository;
 import vaultWeb.repositories.PrivateChatRepository;
 import vaultWeb.repositories.UserRepository;
-import vaultWeb.security.EncryptionUtil;
 
 @ExtendWith(MockitoExtension.class)
 class ChatServiceTest {
+  private static final String SENDER_DEVICE_ID = "dev-1";
+  private static final String VALID_E2EE_PAYLOAD =
+      "{\"v\":1,\"senderDeviceId\":\"dev-1\",\"senderPublicKey\":{\"kty\":\"EC\",\"crv\":\"P-256\","
+          + "\"x\":\"abc\",\"y\":\"def\"},\"recipients\":{\"dev-2\":{\"iv\":\"aXY=\","
+          + "\"salt\":\"c2FsdA==\",\"ciphertext\":\"Y2lwaGVy\"}}}";
 
   @Mock private ChatMessageRepository chatMessageRepository;
 
@@ -35,8 +38,6 @@ class ChatServiceTest {
   @Mock private GroupRepository groupRepository;
 
   @Mock private PrivateChatRepository privateChatRepository;
-
-  @Mock private EncryptionUtil encryptionUtil;
 
   @InjectMocks private ChatService chatService;
 
@@ -60,53 +61,49 @@ class ChatServiceTest {
   }
 
   @Test
-  void shouldSaveGroupMessageSuccessfully() throws Exception {
+  void shouldSaveGroupMessageSuccessfully() {
     User sender = createUser(1L, "user1");
     Group group = createGroup(10L);
     ChatMessageDto dto = new ChatMessageDto();
     dto.setSenderId(1L);
     dto.setGroupId(10L);
-    dto.setContent("Hello World");
-
-    EncryptionUtil.EncryptResult encryptResult =
-        new EncryptionUtil.EncryptResult("encryptedText", "randomIV");
+    dto.setE2eePayload(VALID_E2EE_PAYLOAD);
+    dto.setSenderDeviceId(SENDER_DEVICE_ID);
 
     when(userRepository.findById(1L)).thenReturn(Optional.of(sender));
     when(groupRepository.findById(10L)).thenReturn(Optional.of(group));
-    when(encryptionUtil.encrypt("Hello World")).thenReturn(encryptResult);
     when(chatMessageRepository.save(any(ChatMessage.class))).thenAnswer(i -> i.getArgument(0));
 
     ChatMessage result = chatService.saveMessage(dto);
 
     assertNotNull(result);
-    assertEquals("encryptedText", result.getCipherText());
-    assertEquals("randomIV", result.getIv());
+    assertEquals(VALID_E2EE_PAYLOAD, result.getE2eePayload());
+    assertEquals(SENDER_DEVICE_ID, result.getSenderDeviceId());
     assertEquals(sender, result.getSender());
     assertEquals(group, result.getGroup());
     verify(chatMessageRepository).save(any(ChatMessage.class));
   }
 
   @Test
-  void shouldSavePrivateChatMessageSuccessfully() throws Exception {
+  void shouldSavePrivateChatMessageSuccessfully() {
     User sender = createUser(1L, "user1");
     PrivateChat privateChat = createPrivateChat(5L);
     ChatMessageDto dto = new ChatMessageDto();
     dto.setSenderUsername("user1");
     dto.setPrivateChatId(5L);
-    dto.setContent("Private message");
-
-    EncryptionUtil.EncryptResult encryptResult =
-        new EncryptionUtil.EncryptResult("encryptedPrivate", "privateIV");
+    dto.setE2eePayload(VALID_E2EE_PAYLOAD);
+    dto.setSenderDeviceId(SENDER_DEVICE_ID);
 
     when(userRepository.findByUsername("user1")).thenReturn(Optional.of(sender));
     when(privateChatRepository.findById(5L)).thenReturn(Optional.of(privateChat));
-    when(encryptionUtil.encrypt("Private message")).thenReturn(encryptResult);
     when(chatMessageRepository.save(any(ChatMessage.class))).thenAnswer(i -> i.getArgument(0));
 
     ChatMessage result = chatService.saveMessage(dto);
 
     assertNotNull(result);
     assertEquals(privateChat, result.getPrivateChat());
+    assertEquals(VALID_E2EE_PAYLOAD, result.getE2eePayload());
+    assertEquals(SENDER_DEVICE_ID, result.getSenderDeviceId());
     verify(chatMessageRepository).save(any(ChatMessage.class));
   }
 
@@ -115,7 +112,8 @@ class ChatServiceTest {
     ChatMessageDto dto = new ChatMessageDto();
     dto.setSenderId(999L);
     dto.setGroupId(10L);
-    dto.setContent("Hello");
+    dto.setE2eePayload(VALID_E2EE_PAYLOAD);
+    dto.setSenderDeviceId(SENDER_DEVICE_ID);
 
     when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
@@ -128,7 +126,8 @@ class ChatServiceTest {
     ChatMessageDto dto = new ChatMessageDto();
     dto.setSenderUsername("unknown");
     dto.setGroupId(10L);
-    dto.setContent("Hello");
+    dto.setE2eePayload(VALID_E2EE_PAYLOAD);
+    dto.setSenderDeviceId(SENDER_DEVICE_ID);
 
     when(userRepository.findByUsername("unknown")).thenReturn(Optional.empty());
 
@@ -140,25 +139,23 @@ class ChatServiceTest {
   void shouldFailSaveMessage_WhenNoSenderInfo() {
     ChatMessageDto dto = new ChatMessageDto();
     dto.setGroupId(10L);
-    dto.setContent("Hello");
+    dto.setE2eePayload(VALID_E2EE_PAYLOAD);
+    dto.setSenderDeviceId(SENDER_DEVICE_ID);
 
     assertThrows(UserNotFoundException.class, () -> chatService.saveMessage(dto));
     verify(chatMessageRepository, never()).save(any());
   }
 
   @Test
-  void shouldFailSaveMessage_WhenGroupNotFound() throws Exception {
+  void shouldFailSaveMessage_WhenGroupNotFound() {
     User sender = createUser(1L, "user1");
     ChatMessageDto dto = new ChatMessageDto();
     dto.setSenderId(1L);
     dto.setGroupId(999L);
-    dto.setContent("Hello");
-
-    EncryptionUtil.EncryptResult encryptResult =
-        new EncryptionUtil.EncryptResult("encrypted", "iv");
+    dto.setE2eePayload(VALID_E2EE_PAYLOAD);
+    dto.setSenderDeviceId(SENDER_DEVICE_ID);
 
     when(userRepository.findById(1L)).thenReturn(Optional.of(sender));
-    when(encryptionUtil.encrypt("Hello")).thenReturn(encryptResult);
     when(groupRepository.findById(999L)).thenReturn(Optional.empty());
 
     assertThrows(GroupNotFoundException.class, () -> chatService.saveMessage(dto));
@@ -166,71 +163,78 @@ class ChatServiceTest {
   }
 
   @Test
-  void shouldFailSaveMessage_WhenNoChatTarget() throws Exception {
+  void shouldFailSaveMessage_WhenNoChatTarget() {
     User sender = createUser(1L, "user1");
     ChatMessageDto dto = new ChatMessageDto();
     dto.setSenderId(1L);
-    dto.setContent("Hello");
-
-    EncryptionUtil.EncryptResult encryptResult =
-        new EncryptionUtil.EncryptResult("encrypted", "iv");
+    dto.setE2eePayload(VALID_E2EE_PAYLOAD);
+    dto.setSenderDeviceId(SENDER_DEVICE_ID);
 
     when(userRepository.findById(1L)).thenReturn(Optional.of(sender));
-    when(encryptionUtil.encrypt("Hello")).thenReturn(encryptResult);
 
     assertThrows(GroupNotFoundException.class, () -> chatService.saveMessage(dto));
     verify(chatMessageRepository, never()).save(any());
   }
 
   @Test
-  void shouldFailSaveMessage_WhenEncryptionFails() throws Exception {
+  void shouldFailSaveMessage_WhenEncryptionDataMissing() {
     User sender = createUser(1L, "user1");
     ChatMessageDto dto = new ChatMessageDto();
     dto.setSenderId(1L);
     dto.setGroupId(10L);
-    dto.setContent("Hello");
+    dto.setE2eePayload(null);
+    dto.setSenderDeviceId(SENDER_DEVICE_ID);
 
     when(userRepository.findById(1L)).thenReturn(Optional.of(sender));
-    when(encryptionUtil.encrypt("Hello")).thenThrow(new RuntimeException("Encryption error"));
 
     assertThrows(EncryptionFailedException.class, () -> chatService.saveMessage(dto));
     verify(chatMessageRepository, never()).save(any());
   }
 
   @Test
-  void shouldDecryptMessageSuccessfully() throws Exception {
-    when(encryptionUtil.decrypt("cipherText", "iv")).thenReturn("decrypted message");
-
-    String result = chatService.decrypt("cipherText", "iv");
-
-    assertEquals("decrypted message", result);
-  }
-
-  @Test
-  void shouldFailDecrypt_WhenDecryptionFails() throws Exception {
-    when(encryptionUtil.decrypt("badCipher", "badIv"))
-        .thenThrow(new RuntimeException("Decryption error"));
-
-    assertThrows(DecryptionFailedException.class, () -> chatService.decrypt("badCipher", "badIv"));
-  }
-
-  @Test
-  void shouldFailSaveMessage_WhenPrivateChatNotFound() throws Exception {
+  void shouldFailSaveMessage_WhenPrivateChatNotFound() {
     User sender = createUser(1L, "user1");
     ChatMessageDto dto = new ChatMessageDto();
     dto.setSenderId(1L);
     dto.setPrivateChatId(99L);
-    dto.setContent("Hello");
-
-    EncryptionUtil.EncryptResult encryptResult =
-        new EncryptionUtil.EncryptResult("encrypted", "iv");
+    dto.setE2eePayload(VALID_E2EE_PAYLOAD);
+    dto.setSenderDeviceId(SENDER_DEVICE_ID);
 
     when(userRepository.findById(1L)).thenReturn(Optional.of(sender));
     when(privateChatRepository.findById(99L)).thenReturn(Optional.empty());
-    when(encryptionUtil.encrypt("Hello")).thenReturn(encryptResult);
 
     assertThrows(GroupNotFoundException.class, () -> chatService.saveMessage(dto));
 
+    verify(chatMessageRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldFailSaveMessage_WhenSenderDeviceIdMissing() {
+    User sender = createUser(1L, "user1");
+    ChatMessageDto dto = new ChatMessageDto();
+    dto.setSenderId(1L);
+    dto.setGroupId(10L);
+    dto.setE2eePayload(VALID_E2EE_PAYLOAD);
+    dto.setSenderDeviceId(null);
+
+    when(userRepository.findById(1L)).thenReturn(Optional.of(sender));
+
+    assertThrows(EncryptionFailedException.class, () -> chatService.saveMessage(dto));
+    verify(chatMessageRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldFailSaveMessage_WhenE2eePayloadBlank() {
+    User sender = createUser(1L, "user1");
+    ChatMessageDto dto = new ChatMessageDto();
+    dto.setSenderId(1L);
+    dto.setGroupId(10L);
+    dto.setE2eePayload("");
+    dto.setSenderDeviceId(SENDER_DEVICE_ID);
+
+    when(userRepository.findById(1L)).thenReturn(Optional.of(sender));
+
+    assertThrows(EncryptionFailedException.class, () -> chatService.saveMessage(dto));
     verify(chatMessageRepository, never()).save(any());
   }
 }

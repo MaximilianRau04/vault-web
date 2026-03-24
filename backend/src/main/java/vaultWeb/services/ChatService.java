@@ -82,7 +82,10 @@ public class ChatService {
       message.setTimestamp(Instant.now());
     }
 
-    if (dto.getE2eePayload() == null || dto.getSenderDeviceId() == null) {
+    if (dto.getE2eePayload() == null
+        || dto.getE2eePayload().isBlank()
+        || dto.getSenderDeviceId() == null
+        || dto.getSenderDeviceId().isBlank()) {
       throw new EncryptionFailedException("Missing end-to-end encrypted payload");
     }
 
