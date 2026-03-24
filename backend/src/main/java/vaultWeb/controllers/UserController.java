@@ -2,7 +2,6 @@ package vaultWeb.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -16,6 +15,9 @@ import vaultWeb.dtos.user.UserDto;
 import vaultWeb.dtos.user.UserResponseDto;
 import vaultWeb.exceptions.UnauthorizedException;
 import vaultWeb.models.User;
+import vaultWeb.security.annotations.ApiRateLimit;
+import vaultWeb.security.annotations.AuditSecurityEvent;
+import vaultWeb.security.annotations.SecurityEventType;
 import vaultWeb.services.UserService;
 import vaultWeb.services.auth.AuthService;
 import vaultWeb.services.auth.LoginResult;
@@ -39,6 +41,14 @@ public class UserController {
                             Accepts a JSON object containing username and plaintext password.
                             The password is hashed using BCrypt (via Spring Security's PasswordEncoder) before being persisted.
                             The new user is assigned the default role 'User'.""")
+  @AuditSecurityEvent(SecurityEventType.REGISTER)
+  @ApiRateLimit(capacity = 5, refillTokens = 5, refillDurationMinutes = 1, useIpAddress = true)
+  @ApiResponse(responseCode = "200", description = "User registered successfully")
+  @ApiResponse(
+      responseCode = "400",
+      description =
+          "Password does not meet requirements. It must contain at least one uppercase letter and one digit.")
+  @ApiResponse(responseCode = "409", description = "Username already exists.")
   public ResponseEntity<String> register(@Valid @RequestBody UserDto user) {
     userService.registerUser(new User(user));
     return ResponseEntity.ok("User registered successfully");
@@ -62,7 +72,11 @@ public class UserController {
 
                     The access token should be sent in the Authorization header for protected endpoints.
                     """)
+  @AuditSecurityEvent(SecurityEventType.LOGIN)
+  @ApiRateLimit(capacity = 5, refillTokens = 5, refillDurationMinutes = 1, useIpAddress = true)
   @PostMapping("/login")
+  @ApiResponse(responseCode = "200", description = "Login successful.")
+  @ApiResponse(responseCode = "401", description = "Username or password is incorrect.")
   public ResponseEntity<?> login(@Valid @RequestBody UserDto user, HttpServletResponse response) {
     LoginResult res = authService.login(user.getUsername(), user.getPassword());
     refreshTokenService.create(res.user(), response);
@@ -90,10 +104,10 @@ public class UserController {
 
                     Returns 401 if the refresh token is missing, invalid, expired, revoked, or reused.
                     """)
-  @ApiResponses({
-    @ApiResponse(responseCode = "200", description = "Access token refreshed successfully"),
-    @ApiResponse(responseCode = "401", description = "Invalid, expired, or revoked refresh token")
-  })
+  @ApiResponse(responseCode = "200", description = "Access token refreshed successfully")
+  @ApiResponse(responseCode = "401", description = "Invalid, expired, or revoked refresh token")
+  @AuditSecurityEvent(SecurityEventType.TOKEN_REFRESH)
+  @ApiRateLimit(capacity = 5, refillTokens = 5, refillDurationMinutes = 1, useIpAddress = true)
   @PostMapping("/refresh")
   public ResponseEntity<?> refresh(
       @CookieValue(name = "refresh_token", required = false) String refreshToken,
@@ -105,6 +119,7 @@ public class UserController {
     return authService.refresh(refreshToken, response);
   }
 
+  @AuditSecurityEvent(SecurityEventType.LOGOUT)
   @PostMapping("/logout")
   @Operation(
       summary = "Logout user and revoke refresh token",
@@ -124,7 +139,7 @@ public class UserController {
 
                     This operation logs out the current device/session only.
                     """)
-  @ApiResponses({@ApiResponse(responseCode = "200", description = "Logged out successfully")})
+  @ApiResponse(responseCode = "200", description = "Logged out successfully")
   public ResponseEntity<Void> logout(
       @CookieValue(name = "refresh_token", required = false) String refreshToken,
       HttpServletResponse response) {
@@ -136,6 +151,7 @@ public class UserController {
   @Operation(
       summary = "Check if username already exists",
       description = "Returns true if the username is already taken, false otherwise.")
+  @ApiResponse(responseCode = "200", description = "Username existence checked successfully.")
   public ResponseEntity<Map<String, Boolean>> checkUsernameExists(@RequestParam String username) {
     boolean exists = userService.usernameExists(username);
     return ResponseEntity.ok(Map.of("exists", exists));
@@ -146,17 +162,28 @@ public class UserController {
       summary = "Get all users",
       description =
           "Returns a list of all users with basic info (e.g., usernames) for displaying in the chat list.")
+  @ApiResponse(responseCode = "200", description = "List of all users retrieved successfully.")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public ResponseEntity<List<UserResponseDto>> getAllUsers() {
     List<UserResponseDto> users =
         userService.getAllUsers().stream().map(UserResponseDto::new).toList();
     return ResponseEntity.ok(users);
   }
 
+  @AuditSecurityEvent(SecurityEventType.PASSWORD_CHANGE)
+  @ApiRateLimit(capacity = 5, refillTokens = 5, refillDurationMinutes = 1, useIpAddress = true)
   @PostMapping("/change-password")
   @Operation(
       summary = "Change password for the authenticated user",
       description =
           "User must provide the current password. The new password must meet the platform requirements.")
+  @ApiResponse(responseCode = "204", description = "Password changed successfully.")
+  @ApiResponse(
+      responseCode = "401",
+      description =
+          "Unauthorized request. You must provide an authentication token along with the correct current password.")
   public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
     User currentUser = authService.getCurrentUser();
     if (currentUser == null) {

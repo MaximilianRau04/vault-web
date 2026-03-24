@@ -4,9 +4,47 @@
   box-shadow: 0 1px 3px var(--color-shadow);
 }
 
+.home-panel {
+  border: 1px solid var(--color-border);
+}
+
 h2 {
   color: var(--color-text-primary);
   border-bottom: 1px solid var(--color-border);
+}
+
+.edit-toggle-btn {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+
+  &:hover {
+    background-color: var(--color-background-secondary);
+    color: var(--color-text-primary);
+  }
+
+  &.is-active {
+    background-color: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--color-primary);
+  }
+}
+
+.section-heading {
+  background-color: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.action-bar {
+  background-color: var(--color-background-secondary);
+  border-bottom-color: var(--color-border);
+}
+
+.chat-row.is-selected {
+  background-color: var(--color-surface-hover);
+  box-shadow: inset 3px 0 0 var(--color-primary);
 }
 
 ul {

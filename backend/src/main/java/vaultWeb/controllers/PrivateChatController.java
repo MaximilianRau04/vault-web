@@ -1,16 +1,17 @@
 package vaultWeb.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.ArrayList;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import vaultWeb.dtos.BatchOperationDto;
 import vaultWeb.dtos.ChatMessageDto;
+import vaultWeb.dtos.ClearChatRequestDto;
+import vaultWeb.dtos.CreateGroupFromChatsRequest;
 import vaultWeb.dtos.DeviceDto;
 import vaultWeb.dtos.PrivateChatDto;
 import vaultWeb.exceptions.UnauthorizedException;
@@ -45,6 +46,12 @@ public class PrivateChatController {
                     - 'sender' and 'receiver' are the usernames of the users.
                     - Returns a PrivateChatDto containing the chat ID and the usernames of both participants.
                     """)
+  @ApiResponse(
+      responseCode = "200",
+      description = "Private chat created or retrieved successfully.")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public PrivateChatDto getOrCreatePrivateChat(
       @RequestParam String sender, @RequestParam String receiver) {
     PrivateChat chat = privateChatService.getOrCreatePrivateChat(sender, receiver);
@@ -63,6 +70,12 @@ public class PrivateChatController {
                     - The message content is end-to-end encrypted and never decrypted by the server.
                     - Returns a list of ChatMessageDto containing encrypted payload, sender info, timestamp, and chat ID.
                     """)
+  @ApiResponse(
+      responseCode = "200",
+      description = "Messages from private chat have been retrieved successfully.")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public List<ChatMessageDto> getPrivateChatMessages(@RequestParam Long privateChatId) {
     List<ChatMessage> messages =
         chatMessageRepository.findByPrivateChatIdOrderByTimestampAsc(privateChatId);
@@ -84,6 +97,11 @@ public class PrivateChatController {
   }
 
   @GetMapping("/devices")
+  @Operation(
+      summary = "Get devices for private chat participants",
+      description =
+          "Retrieves all registered devices of users participating in the private chat. "
+              + "The current user must be a participant.")
   public List<DeviceDto> getPrivateChatDevices(
       @RequestParam Long privateChatId, Authentication authentication) {
     PrivateChat chat =
@@ -97,13 +115,68 @@ public class PrivateChatController {
     if (!isParticipant) {
       throw new UnauthorizedException("Not allowed to access devices for this chat");
     }
-    List<User> users = new ArrayList<>();
-    if (chat.getUser1() != null) {
-      users.add(chat.getUser1());
-    }
-    if (chat.getUser2() != null) {
-      users.add(chat.getUser2());
-    }
+    List<User> users =
+        java.util.stream.Stream.of(chat.getUser1(), chat.getUser2())
+            .filter(u -> u != null)
+            .toList();
     return deviceRepository.findByUserIn(users).stream().map(DeviceDto::from).toList();
+  }
+
+  @GetMapping("/user-chats")
+  @Operation(
+      summary = "Get all private chats for the current user",
+      description = "Retrieves all private chats where the current user is a participant")
+  public List<PrivateChatDto> getUserChats(Authentication authentication) {
+    String username = authentication.getName();
+    List<PrivateChat> privateChats = privateChatService.getUserPrivateChats(username);
+
+    List<PrivateChatDto> privateChatDtos =
+        privateChats.stream()
+            .map(
+                chat ->
+                    new PrivateChatDto(
+                        chat.getId(), chat.getUser1().getUsername(), chat.getUser2().getUsername()))
+            .toList();
+    return privateChatDtos;
+  }
+
+  @PostMapping("/clear-multiple")
+  @Operation(
+      summary = "Clear message from Multiple Chats",
+      description = "Delete all message from the selected private chats")
+  @ApiResponse(responseCode = "200", description = "Message Cleared Successfully")
+  @ApiResponse(responseCode = "401", description = "Unauthorized, user need to valid token")
+  @ApiResponse(responseCode = "403", description = "User not authorized to clear those chats")
+  public BatchOperationDto clearMultipleChats(
+      @Valid @RequestBody ClearChatRequestDto request, Authentication authentication) {
+    String currentUsername = authentication.getName();
+    int deleteCount =
+        privateChatService.clearMultipleChats(request.getPrivateChatIds(), currentUsername);
+    return BatchOperationDto.builder()
+        .success(true)
+        .message("Successfully cleared multiple chats.")
+        .affectedCount(deleteCount)
+        .build();
+  }
+
+  @PostMapping("/create-group-from-chats")
+  @Operation(
+      summary = "Create a group from multiple private chats",
+      description = "Combines all participants from selected private chats into a new group")
+  public BatchOperationDto createGroupFromChats(
+      @Valid @RequestBody CreateGroupFromChatsRequest groupCreationRequest,
+      Authentication authentication) {
+    String currentUsername = authentication.getName();
+    Long groupId =
+        privateChatService.createGroupFromChats(
+            groupCreationRequest.getPrivateChatIds(),
+            groupCreationRequest.getGroupName(),
+            groupCreationRequest.getDescription(),
+            currentUsername);
+    return BatchOperationDto.builder()
+        .success(true)
+        .message("Successfully created group from chats.")
+        .groupId(groupId)
+        .build();
   }
 }

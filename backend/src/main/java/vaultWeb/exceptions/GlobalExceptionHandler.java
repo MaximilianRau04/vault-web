@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import vaultWeb.exceptions.notfound.GroupNotFoundException;
 import vaultWeb.exceptions.notfound.NotMemberException;
+import vaultWeb.exceptions.notfound.PrivateChatNotFoundException;
 import vaultWeb.exceptions.notfound.UserNotFoundException;
 
 /**
@@ -28,6 +29,13 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(GroupNotFoundException.class)
   public ResponseEntity<String> handleGroupNotFound(GroupNotFoundException ex) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Group not found: " + ex.getMessage());
+  }
+
+  /** Handles PrivateChatNotFoundException and returns 404 Not Found. */
+  @ExceptionHandler(PrivateChatNotFoundException.class)
+  public ResponseEntity<String> handlePrivateChatNotFound(PrivateChatNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body("Private Chat not found: " + ex.getMessage());
   }
 
   /** Handles UnauthorizedException and returns 401 Unauthorized. */
@@ -105,6 +113,14 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(PollOptionNotFoundException.class)
   public ResponseEntity<String> handlePollOptionNotFound(PollOptionNotFoundException ex) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Poll error: " + ex.getMessage());
+  }
+
+  /** Handles RateLimitExceededException and returns 429 Limit Exceeded. */
+  @ExceptionHandler(RateLimitExceededException.class)
+  public ResponseEntity<String> handleRateLimitExceededException(RateLimitExceededException ex) {
+    return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+        .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+        .body("Too Many Requests: " + ex.getMessage());
   }
 
   /** Handles any other RuntimeException and returns 500 Internal Server Error. */

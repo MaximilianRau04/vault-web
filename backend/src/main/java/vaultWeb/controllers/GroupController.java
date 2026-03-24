@@ -1,5 +1,7 @@
 package vaultWeb.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +42,11 @@ public class GroupController {
    * @return a list of public groups
    */
   @GetMapping("")
+  @Operation(summary = "Retrieves all public groups.")
+  @ApiResponse(responseCode = "200", description = "Public groups retrieved successfully")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public ResponseEntity<List<Group>> getGroups() {
     List<Group> publicGroups = groupService.getPublicGroups();
     return ResponseEntity.ok(publicGroups);
@@ -52,6 +59,12 @@ public class GroupController {
    * @return the group if found, or 404 if not found
    */
   @GetMapping("/{id}")
+  @Operation(summary = "Retrieves a group by its ID")
+  @ApiResponse(responseCode = "200", description = "Group retrieved successfully")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
+  @ApiResponse(responseCode = "404", description = "Group was not found.")
   public ResponseEntity<Group> getGroupById(@PathVariable Long id) {
     return groupService
         .getGroupById(id)
@@ -66,6 +79,11 @@ public class GroupController {
    * @return a list of users in the group
    */
   @GetMapping("/{id}/members")
+  @Operation(summary = "Retrieves all members of a given group")
+  @ApiResponse(responseCode = "200", description = "Members retrieved successfully")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public ResponseEntity<List<User>> getGroupMembers(@PathVariable Long id) {
     List<User> members = groupService.getMembers(id);
     return ResponseEntity.ok(members);
@@ -93,6 +111,11 @@ public class GroupController {
    * @return the created group
    */
   @PostMapping("")
+  @Operation(summary = "Creates a new group")
+  @ApiResponse(responseCode = "200", description = "Group created successfully")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public ResponseEntity<Group> createGroup(@RequestBody GroupDto groupDto) {
     User currentUser = authService.getCurrentUser();
     Group created = groupService.createGroup(groupDto, currentUser);
@@ -106,6 +129,11 @@ public class GroupController {
    * @return the updated group
    */
   @PostMapping("/{id}/join")
+  @Operation(summary = "Join a new group")
+  @ApiResponse(responseCode = "200", description = "Group joined successfully")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public ResponseEntity<Group> joinGroup(@PathVariable Long id) {
     User currentUser = authService.getCurrentUser();
     Group updatedGroup = groupService.joinGroup(id, currentUser);
@@ -121,6 +149,14 @@ public class GroupController {
    */
   @AdminOnly
   @PutMapping("/{id}")
+  @Operation(summary = "Updates a group. Admin privileges required")
+  @ApiResponse(responseCode = "200", description = "Group updated successfully")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
+  @ApiResponse(
+      responseCode = "403",
+      description = "Unauthorized request. You must have admin privileges.")
   public ResponseEntity<Group> updateGroup(
       @PathVariable Long id, @RequestBody GroupDto updatedGroup) {
     return ResponseEntity.ok(groupService.updateGroup(id, updatedGroup));
@@ -133,6 +169,14 @@ public class GroupController {
    */
   @AdminOnly
   @DeleteMapping("/{id}")
+  @Operation(summary = "Deletes a group. Admin privileges required")
+  @ApiResponse(responseCode = "200", description = "Group deleted successfully")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
+  @ApiResponse(
+      responseCode = "403",
+      description = "Unauthorized request. You must have admin privileges.")
   public ResponseEntity<Void> deleteGroup(@PathVariable Long id) {
     groupService.deleteGroup(id);
     return ResponseEntity.noContent().build();
@@ -145,6 +189,11 @@ public class GroupController {
    * @return the updated group
    */
   @DeleteMapping("/{id}/leave")
+  @Operation(summary = "Leave a current group")
+  @ApiResponse(responseCode = "200", description = "Group left successfully")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public ResponseEntity<Group> leaveGroup(@PathVariable Long id) {
     User currentUser = authService.getCurrentUser();
     Group updatedGroup = groupService.leaveGroup(id, currentUser);
@@ -160,6 +209,14 @@ public class GroupController {
    */
   @AdminOnly
   @DeleteMapping("/{groupId}/members/{userId}")
+  @Operation(summary = "Remove a member from a group. Admin privileges required")
+  @ApiResponse(responseCode = "200", description = "Member kicked successfully")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
+  @ApiResponse(
+      responseCode = "403",
+      description = "Unauthorized request. You must have admin privileges.")
   public ResponseEntity<Group> removeMemberFromGroup(
       @PathVariable Long groupId, @PathVariable Long userId) {
     Group group = groupService.removeMember(groupId, userId);

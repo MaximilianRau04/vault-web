@@ -1,5 +1,7 @@
 package vaultWeb.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,18 @@ public class PollController {
    * @return the created poll as a PollResponseDto
    */
   @PostMapping("")
+  @Operation(
+      summary = "Creates a new poll in the specified group",
+      description =
+          """
+      This endpoint creates a poll within a specific group.
+      - 'groupId': the ID of the group where the poll will be created
+      - 'pollDTO': the poll data to be sent in the request body
+      """)
+  @ApiResponse(responseCode = "201", description = "Poll created successfully.")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public ResponseEntity<PollResponseDto> createPoll(
       @PathVariable Long groupId, @RequestBody @Valid PollRequestDto pollDto) {
     User currentUser = authService.getCurrentUser();
@@ -59,6 +73,17 @@ public class PollController {
    * @return list of PollResponseDto objects
    */
   @GetMapping("")
+  @Operation(
+      summary = "Retrieves all polls of a given group",
+      description =
+          """
+      This endpoint returns every poll within a specific group.
+      - 'groupId': the ID of the group to retrieve all polls from
+      """)
+  @ApiResponse(responseCode = "200", description = "Polls retrieved successfully.")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public ResponseEntity<List<PollResponseDto>> getPolls(@PathVariable Long groupId) {
     User currentUser = authService.getCurrentUser();
     List<PollResponseDto> polls =
@@ -77,6 +102,19 @@ public class PollController {
    * @return HTTP 204 No Content
    */
   @PostMapping("/{pollId}/options/{optionId}/vote")
+  @Operation(
+      summary = "Casts a vote for a specific poll option",
+      description =
+          """
+      This endpoint casts a vote for some poll conducted within a specific group.
+      - 'groupId': the ID of the group
+      - 'pollId': the ID of the poll
+      - 'optionId': the ID of the option being voted for
+      """)
+  @ApiResponse(responseCode = "204", description = "Vote cast successfully.")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public ResponseEntity<Void> vote(
       @PathVariable Long groupId, @PathVariable Long pollId, @PathVariable Long optionId) {
     User currentUser = authService.getCurrentUser();
@@ -93,6 +131,18 @@ public class PollController {
    * @return updated PollResponseDto
    */
   @PutMapping("/{pollId}")
+  @Operation(
+      summary = "Updates an existing poll",
+      description =
+          """
+      This endpoint updates the state of a poll within a specific group.
+      - 'groupId': the ID of the group the poll belongs to
+      - 'pollId': the ID of the poll to update
+      """)
+  @ApiResponse(responseCode = "200", description = "Poll data updated successfully.")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public ResponseEntity<PollResponseDto> updatePoll(
       @PathVariable Long groupId,
       @PathVariable Long pollId,
@@ -110,6 +160,18 @@ public class PollController {
    * @return HTTP 204 No Content
    */
   @DeleteMapping("/{pollId}")
+  @Operation(
+      summary = "Deletes a poll from a group",
+      description =
+          """
+      This endpoint deletes a poll conducted within a specific group.
+      - 'groupId': the ID of the group
+      - 'pollId': the ID of the poll
+      """)
+  @ApiResponse(responseCode = "204", description = "Poll deleted successfully")
+  @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized request. You must provide an authentication token.")
   public ResponseEntity<Void> deletePoll(@PathVariable Long groupId, @PathVariable Long pollId) {
     User currentUser = authService.getCurrentUser();
     pollService.deletePoll(groupId, pollId, currentUser);
