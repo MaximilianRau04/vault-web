@@ -11,7 +11,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import vaultWeb.dtos.ChatMessageDto;
-import vaultWeb.exceptions.EncryptionFailedException;
 import vaultWeb.exceptions.notfound.GroupNotFoundException;
 import vaultWeb.exceptions.notfound.PrivateChatNotFoundException;
 import vaultWeb.exceptions.notfound.UserNotFoundException;
@@ -188,7 +187,7 @@ class ChatServiceTest {
 
     when(userRepository.findById(1L)).thenReturn(Optional.of(sender));
 
-    assertThrows(EncryptionFailedException.class, () -> chatService.saveMessage(dto));
+    assertThrows(IllegalArgumentException.class, () -> chatService.saveMessage(dto));
     verify(chatMessageRepository, never()).save(any());
   }
 
@@ -220,7 +219,7 @@ class ChatServiceTest {
 
     when(userRepository.findById(1L)).thenReturn(Optional.of(sender));
 
-    assertThrows(EncryptionFailedException.class, () -> chatService.saveMessage(dto));
+    assertThrows(IllegalArgumentException.class, () -> chatService.saveMessage(dto));
     verify(chatMessageRepository, never()).save(any());
   }
 
@@ -235,7 +234,7 @@ class ChatServiceTest {
 
     when(userRepository.findById(1L)).thenReturn(Optional.of(sender));
 
-    assertThrows(EncryptionFailedException.class, () -> chatService.saveMessage(dto));
+    assertThrows(IllegalArgumentException.class, () -> chatService.saveMessage(dto));
     verify(chatMessageRepository, never()).save(any());
   }
 }

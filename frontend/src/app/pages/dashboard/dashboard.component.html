@@ -102,7 +102,7 @@
               role="button"
               tabindex="0"
               (click)="openPrivateChat(chat)"
-              (keydown.enter)="openPrivateChat(chat)"
+              (keydown)="onPrivateChatKeydown($event, chat)"
             >
               <div class="avatar">
                 {{ chat.participant.charAt(0).toUpperCase() }}
@@ -183,7 +183,7 @@
               role="button"
               tabindex="0"
               (click)="openRecentMessage(message)"
-              (keydown.enter)="openRecentMessage(message)"
+              (keydown)="onRecentMessageKeydown($event, message)"
             >
               <div class="dot"></div>
               <div>

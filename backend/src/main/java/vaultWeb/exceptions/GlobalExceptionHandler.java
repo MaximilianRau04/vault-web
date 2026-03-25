@@ -113,6 +113,13 @@ public class GlobalExceptionHandler {
     return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "Invalid poll request");
   }
 
+  /** Handles illegal client arguments and returns 400 Bad Request. */
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<ApiErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+    log.warn("Invalid request payload", ex);
+    return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "Invalid request");
+  }
+
   /** Handles DecryptionFailedException and returns 500 Internal Server Error. */
   @ExceptionHandler(DecryptionFailedException.class)
   public ResponseEntity<ApiErrorResponse> handleDecryptionFailed(DecryptionFailedException ex) {

@@ -363,9 +363,13 @@ export class E2eeService {
 
   private arrayBufferToBase64(buffer: ArrayBuffer): string {
     const bytes = new Uint8Array(buffer);
-    let binary = '';
-    bytes.forEach((b) => (binary += String.fromCharCode(b)));
-    return btoa(binary);
+    const chunkSize = 0x8000;
+    const chunks: string[] = [];
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      chunks.push(String.fromCharCode(...chunk));
+    }
+    return btoa(chunks.join(''));
   }
 
   private base64ToArrayBuffer(base64: string): ArrayBuffer {

@@ -4,7 +4,6 @@ import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vaultWeb.dtos.ChatMessageDto;
-import vaultWeb.exceptions.EncryptionFailedException;
 import vaultWeb.exceptions.notfound.GroupNotFoundException;
 import vaultWeb.exceptions.notfound.PrivateChatNotFoundException;
 import vaultWeb.exceptions.notfound.UserNotFoundException;
@@ -55,7 +54,7 @@ public class ChatService {
    * @throws UserNotFoundException if the sender cannot be found by ID or username.
    * @throws GroupNotFoundException if neither groupId nor privateChatId is provided, or if the
    *     specified group/private chat does not exist.
-   * @throws EncryptionFailedException if encryption fails.
+   * @throws IllegalArgumentException if encrypted payload metadata is missing.
    */
   public ChatMessage saveMessage(ChatMessageDto dto) {
     User sender;
@@ -87,7 +86,8 @@ public class ChatService {
         || dto.getE2eePayload().isBlank()
         || dto.getSenderDeviceId() == null
         || dto.getSenderDeviceId().isBlank()) {
-      throw new EncryptionFailedException("Missing end-to-end encrypted payload");
+      throw new IllegalArgumentException(
+          "Missing end-to-end encrypted payload or sender device ID");
     }
 
     if (dto.getGroupId() != null) {

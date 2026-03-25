@@ -33,7 +33,7 @@ public class ChatController {
    * @param messageDto DTO containing message content, sender information, and target group
    */
   @MessageMapping("/chat.send")
-  public void sendMessage(@Payload ChatMessageDto messageDto) {
+  public void sendMessage(@Valid @Payload ChatMessageDto messageDto) {
     ChatMessage savedMessage = chatService.saveMessage(messageDto);
 
     ChatMessageDto responseDto = new ChatMessageDto();

@@ -67,6 +67,14 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  onPrivateChatKeydown(event: KeyboardEvent, chat: PrivateChatSummary): void {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+    event.preventDefault();
+    this.openPrivateChat(chat);
+  }
+
   openRecentMessage(message: MessagePreview): void {
     if (!message.privateChatId) {
       return;
@@ -74,6 +82,14 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/'], {
       queryParams: { privateChatId: message.privateChatId },
     });
+  }
+
+  onRecentMessageKeydown(event: KeyboardEvent, message: MessagePreview): void {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+    event.preventDefault();
+    this.openRecentMessage(message);
   }
 
   getPrivateChatPreview(chat: PrivateChatSummary): string {
