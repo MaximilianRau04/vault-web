@@ -15,7 +15,7 @@ bootstrapApplication(AppComponent, {
         timeOut: 3000,
         preventDuplicates: true,
         progressBar: true,
-        closeButton: true,
+        closeButton: false,
       }),
     ),
     ...appConfig.providers!,

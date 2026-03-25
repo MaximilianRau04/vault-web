@@ -1,7 +1,10 @@
 /* App Component Styles */
-.pt-17 {
-  padding-top: 4.25rem;
+.app-shell {
   background-color: var(--color-background);
   min-height: 100vh;
   color: var(--color-text-primary);
+}
+
+.app-shell.with-navbar {
+  padding-top: 4.25rem;
 }
