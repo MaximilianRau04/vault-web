@@ -7,6 +7,8 @@ import {
   OnInit,
   Output,
   ViewChild,
+  QueryList,
+  ViewChildren,
   AfterViewChecked,
   OnDestroy,
 } from '@angular/core';
@@ -23,6 +25,12 @@ interface ChatMessageView {
   senderUsername?: string;
   privateChatId?: number;
   timestamp: string;
+}
+
+interface EncryptedMessageBodyV1 {
+  v: 1;
+  text: string;
+  clientTimestamp?: string;
 }
 
 @Component({
@@ -46,12 +54,16 @@ export class PrivateChatDialogComponent
 
   @ViewChild('messageContainer') messageContainer!: ElementRef<HTMLDivElement>;
   @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
+  @ViewChildren('messageBubble') messageBubbles!: QueryList<
+    ElementRef<HTMLDivElement>
+  >;
   private privateMessageSub!: Subscription;
 
   private shouldScroll = false;
   isSearchOpen = false;
   searchQuery = '';
-  filteredMessages: ChatMessageView[] = [];
+  matchedMessageIndexes: number[] = [];
+  activeMatchPosition = -1;
 
   constructor(
     private wsService: WebSocketService,
@@ -189,8 +201,16 @@ export class PrivateChatDialogComponent
     message: ChatMessageDto,
   ): Promise<ChatMessageView | null> {
     let content = message.content ?? null;
+    let timestamp = message.timestamp;
     if (message.e2eePayload) {
-      content = await this.e2eeService.decryptPayload(message.e2eePayload);
+      const decrypted = await this.e2eeService.decryptPayload(
+        message.e2eePayload,
+      );
+      const parsed = this.parseDecryptedMessageBody(decrypted);
+      content = parsed.text;
+      if (parsed.clientTimestamp) {
+        timestamp = parsed.clientTimestamp;
+      }
     }
     if (!content) {
       content = message.e2eePayload
@@ -201,7 +221,7 @@ export class PrivateChatDialogComponent
       content,
       senderUsername: message.senderUsername,
       privateChatId: message.privateChatId,
-      timestamp: message.timestamp,
+      timestamp,
     };
   }
 
@@ -215,13 +235,19 @@ export class PrivateChatDialogComponent
         return;
       }
 
+      const clientTimestamp = new Date().toISOString();
+      const encryptedBody: EncryptedMessageBodyV1 = {
+        v: 1,
+        text: plaintext,
+        clientTimestamp,
+      };
       const payload = await this.e2eeService.encryptForDevices(
-        plaintext,
+        JSON.stringify(encryptedBody),
         this.devices,
       );
 
       const message: ChatMessageDto = {
-        timestamp: new Date().toISOString(),
+        timestamp: clientTimestamp,
         senderUsername: this.currentUsername ? this.currentUsername : 'Unknown',
         privateChatId: this.privateChatId,
         senderDeviceId: payload.senderDeviceId,
@@ -260,7 +286,7 @@ export class PrivateChatDialogComponent
       setTimeout(() => this.searchInput?.nativeElement.focus(), 0);
     } else {
       this.searchQuery = '';
-      this.applySearch(); // reset filteredMessages to all messages
+      this.applySearch();
       this.shouldScroll = true;
     }
   }
@@ -269,12 +295,93 @@ export class PrivateChatDialogComponent
     const query = this.searchQuery.trim().toLowerCase();
 
     if (!query) {
-      this.filteredMessages = [...this.messages];
+      this.matchedMessageIndexes = [];
+      this.activeMatchPosition = -1;
       return;
     }
 
-    this.filteredMessages = this.messages.filter((msg) =>
-      msg.content.toLowerCase().includes(query),
-    );
+    this.matchedMessageIndexes = this.messages
+      .map((msg, index) => ({ index, content: msg.content.toLowerCase() }))
+      .filter((entry) => entry.content.includes(query))
+      .map((entry) => entry.index);
+
+    this.activeMatchPosition = this.matchedMessageIndexes.length ? 0 : -1;
+    this.scrollToActiveSearchMatch();
+  }
+
+  goToNextMatch(): void {
+    if (!this.matchedMessageIndexes.length) {
+      return;
+    }
+    this.activeMatchPosition =
+      (this.activeMatchPosition + 1) % this.matchedMessageIndexes.length;
+    this.scrollToActiveSearchMatch();
+  }
+
+  goToPreviousMatch(): void {
+    if (!this.matchedMessageIndexes.length) {
+      return;
+    }
+    this.activeMatchPosition =
+      (this.activeMatchPosition - 1 + this.matchedMessageIndexes.length) %
+      this.matchedMessageIndexes.length;
+    this.scrollToActiveSearchMatch();
+  }
+
+  get searchMatchLabel(): string {
+    if (!this.searchQuery.trim() || !this.matchedMessageIndexes.length) {
+      return `0 / ${this.matchedMessageIndexes.length}`;
+    }
+    return `${this.activeMatchPosition + 1} / ${this.matchedMessageIndexes.length}`;
+  }
+
+  isMessageMatch(index: number): boolean {
+    return this.matchedMessageIndexes.includes(index);
+  }
+
+  isActiveSearchMatch(index: number): boolean {
+    if (this.activeMatchPosition < 0) {
+      return false;
+    }
+    return this.matchedMessageIndexes[this.activeMatchPosition] === index;
+  }
+
+  private scrollToActiveSearchMatch(): void {
+    if (this.activeMatchPosition < 0 || !this.messageBubbles.length) {
+      return;
+    }
+
+    const messageIndex = this.matchedMessageIndexes[this.activeMatchPosition];
+    const bubble = this.messageBubbles.get(messageIndex)?.nativeElement;
+    if (!bubble) {
+      return;
+    }
+
+    bubble.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  private parseDecryptedMessageBody(decrypted: string | null): {
+    text: string | null;
+    clientTimestamp: string | null;
+  } {
+    if (!decrypted) {
+      return { text: null, clientTimestamp: null };
+    }
+
+    try {
+      const parsed = JSON.parse(decrypted) as Partial<EncryptedMessageBodyV1>;
+      if (parsed.v === 1 && typeof parsed.text === 'string') {
+        const timestamp =
+          typeof parsed.clientTimestamp === 'string' &&
+          !Number.isNaN(Date.parse(parsed.clientTimestamp))
+            ? parsed.clientTimestamp
+            : null;
+        return { text: parsed.text, clientTimestamp: timestamp };
+      }
+    } catch {
+      // Backward compatibility for older messages that encrypted raw plaintext only.
+    }
+
+    return { text: decrypted, clientTimestamp: null };
   }
 }

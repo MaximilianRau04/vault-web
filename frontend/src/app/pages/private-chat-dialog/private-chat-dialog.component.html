@@ -44,18 +44,39 @@
       class="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md outline-none focus:border-blue-500 focus:ring focus:ring-blue-200"
       [(ngModel)]="searchQuery"
       (ngModelChange)="applySearch()"
+      (keydown.enter)="goToNextMatch()"
       name="search"
       autocomplete="off"
       placeholder="Search messages"
     />
+    <button
+      type="button"
+      class="search-nav-btn"
+      (click)="goToPreviousMatch()"
+      [disabled]="!matchedMessageIndexes.length"
+      aria-label="Previous match"
+      title="Previous match"
+    >
+      ↑
+    </button>
+    <button
+      type="button"
+      class="search-nav-btn"
+      (click)="goToNextMatch()"
+      [disabled]="!matchedMessageIndexes.length"
+      aria-label="Next match"
+      title="Next match"
+    >
+      ↓
+    </button>
     <span class="text-xs text-gray-400 whitespace-nowrap">
-      {{ filteredMessages.length }} / {{ messages.length }}
+      {{ searchMatchLabel }}
     </span>
   </div>
   <!-- Messagebox -->
   <div class="flex-1 overflow-y-auto p-4 space-y-2" #messageContainer>
     <div
-      *ngFor="let msg of filteredMessages"
+      *ngFor="let msg of messages; let i = index"
       class="flex"
       [ngClass]="{
         'justify-end': msg.senderUsername === currentUsername,
@@ -63,20 +84,26 @@
       }"
     >
       <div
+        #messageBubble
         class="max-w-[75%] px-4 py-2 rounded-xl text-sm break-words"
         [ngClass]="{
           'my-message rounded-br-none': msg.senderUsername === currentUsername,
           'bg-gray-200 text-gray-900 rounded-bl-none':
             msg.senderUsername !== currentUsername,
+          'search-match': isMessageMatch(i),
+          'search-active-match': isActiveSearchMatch(i),
         }"
       >
-        {{ msg.content }}
+        <div>{{ msg.content }}</div>
+        <div class="message-time">
+          {{ msg.timestamp | date: "shortTime" }}
+        </div>
       </div>
     </div>
 
     <div
       *ngIf="
-        isSearchOpen && searchQuery.trim() && filteredMessages.length === 0
+        isSearchOpen && searchQuery.trim() && matchedMessageIndexes.length === 0
       "
       class="text-center text-sm text-gray-400 pt-8"
     >
