@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import vaultWeb.dtos.ChatMessageDto;
 import vaultWeb.exceptions.EncryptionFailedException;
 import vaultWeb.exceptions.notfound.GroupNotFoundException;
+import vaultWeb.exceptions.notfound.PrivateChatNotFoundException;
 import vaultWeb.exceptions.notfound.UserNotFoundException;
 import vaultWeb.models.ChatMessage;
 import vaultWeb.models.Group;
@@ -104,7 +105,7 @@ public class ChatService {
       PrivateChat privateChat =
           privateChatRepository
               .findById(dto.getPrivateChatId())
-              .orElseThrow(() -> new GroupNotFoundException("PrivateChat not found"));
+              .orElseThrow(() -> new PrivateChatNotFoundException("Private chat not found"));
       message.setE2eePayload(dto.getE2eePayload());
       message.setSenderDeviceId(dto.getSenderDeviceId());
       message.setPrivateChat(privateChat);

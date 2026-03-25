@@ -15,6 +15,7 @@ import vaultWeb.dtos.CreateGroupFromChatsRequest;
 import vaultWeb.dtos.DeviceDto;
 import vaultWeb.dtos.PrivateChatDto;
 import vaultWeb.exceptions.UnauthorizedException;
+import vaultWeb.exceptions.notfound.PrivateChatNotFoundException;
 import vaultWeb.models.ChatMessage;
 import vaultWeb.models.PrivateChat;
 import vaultWeb.models.User;
@@ -104,10 +105,13 @@ public class PrivateChatController {
               + "The current user must be a participant.")
   public List<DeviceDto> getPrivateChatDevices(
       @RequestParam Long privateChatId, Authentication authentication) {
+    if (authentication == null) {
+      throw new UnauthorizedException("User not authenticated");
+    }
     PrivateChat chat =
         privateChatRepository
             .findById(privateChatId)
-            .orElseThrow(() -> new IllegalArgumentException("Private chat not found"));
+            .orElseThrow(() -> new PrivateChatNotFoundException("Private chat not found"));
     String username = authentication.getName();
     boolean isParticipant =
         (chat.getUser1() != null && username.equals(chat.getUser1().getUsername()))

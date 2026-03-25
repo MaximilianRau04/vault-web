@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import vaultWeb.dtos.ChatMessageDto;
 import vaultWeb.exceptions.EncryptionFailedException;
 import vaultWeb.exceptions.notfound.GroupNotFoundException;
+import vaultWeb.exceptions.notfound.PrivateChatNotFoundException;
 import vaultWeb.exceptions.notfound.UserNotFoundException;
 import vaultWeb.models.ChatMessage;
 import vaultWeb.models.Group;
@@ -203,7 +204,7 @@ class ChatServiceTest {
     when(userRepository.findById(1L)).thenReturn(Optional.of(sender));
     when(privateChatRepository.findById(99L)).thenReturn(Optional.empty());
 
-    assertThrows(GroupNotFoundException.class, () -> chatService.saveMessage(dto));
+    assertThrows(PrivateChatNotFoundException.class, () -> chatService.saveMessage(dto));
 
     verify(chatMessageRepository, never()).save(any());
   }

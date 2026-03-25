@@ -51,6 +51,8 @@ export class PrivateChatDialogComponent
   messages: ChatMessageView[] = [];
   newMessage = '';
   private devices: DeviceDto[] = [];
+  private lastDevicesRefreshAt = 0;
+  private readonly devicesCacheTtlMs = 15000;
 
   @ViewChild('messageContainer') messageContainer!: ElementRef<HTMLDivElement>;
   @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
@@ -228,11 +230,16 @@ export class PrivateChatDialogComponent
   private async sendEncryptedMessage(plaintext: string): Promise<void> {
     try {
       await this.e2eeService.ensureDeviceRegistered();
-      this.devices = await this.fetchDevices(true);
+      this.devices = await this.fetchDevices();
 
       if (!this.devices.length) {
-        console.error('No devices available for encryption');
-        return;
+        // One forced refresh before failing keeps the common path fast while handling
+        // participant-device changes reliably.
+        this.devices = await this.fetchDevices(true);
+        if (!this.devices.length) {
+          console.error('No devices available for encryption');
+          return;
+        }
       }
 
       const clientTimestamp = new Date().toISOString();
@@ -266,12 +273,17 @@ export class PrivateChatDialogComponent
   }
 
   private fetchDevices(forceRefresh = false): Promise<DeviceDto[]> {
-    if (!forceRefresh && this.devices.length) {
+    const isCacheFresh =
+      Date.now() - this.lastDevicesRefreshAt < this.devicesCacheTtlMs;
+    if (!forceRefresh && this.devices.length && isCacheFresh) {
       return Promise.resolve(this.devices);
     }
     return new Promise<DeviceDto[]>((resolve) => {
       this.chatService.getDevices(this.privateChatId).subscribe({
-        next: (devices) => resolve(devices),
+        next: (devices) => {
+          this.lastDevicesRefreshAt = Date.now();
+          resolve(devices);
+        },
         error: (error) => {
           console.error('Error loading devices for private chat', error);
           resolve([]);
