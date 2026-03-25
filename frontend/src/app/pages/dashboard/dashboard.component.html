@@ -99,6 +99,10 @@
                 let chat of data.privateChats | slice: 0 : 6;
                 trackBy: trackById
               "
+              role="button"
+              tabindex="0"
+              (click)="openPrivateChat(chat)"
+              (keydown.enter)="openPrivateChat(chat)"
             >
               <div class="avatar">
                 {{ chat.participant.charAt(0).toUpperCase() }}
@@ -106,7 +110,7 @@
               <div class="chat-content">
                 <p class="chat-name">{{ chat.participant }}</p>
                 <p class="chat-preview">
-                  {{ chat.lastMessagePreview || "No messages yet" }}
+                  {{ getPrivateChatPreview(chat) }}
                 </p>
               </div>
               <span class="chat-time" *ngIf="chat.lastMessageAt">
@@ -175,6 +179,11 @@
             <li
               class="timeline-entry"
               *ngFor="let message of data.recentMessages; trackBy: trackById"
+              [class.timeline-entry-clickable]="!!message.privateChatId"
+              role="button"
+              tabindex="0"
+              (click)="openRecentMessage(message)"
+              (keydown.enter)="openRecentMessage(message)"
             >
               <div class="dot"></div>
               <div>
@@ -182,17 +191,10 @@
                   {{ message.timestamp | date: "short" }}
                 </p>
                 <p class="timeline-text">
-                  {{ message.content || "Encrypted message" }}
+                  {{ getRecentMessageText(message) }}
                 </p>
                 <p class="timeline-meta">
-                  <ng-container *ngIf="message.groupId"
-                    >Group #{{ message.groupId }}</ng-container
-                  >
-                  <ng-container
-                    *ngIf="!message.groupId && message.privateChatId"
-                  >
-                    Private chat #{{ message.privateChatId }}
-                  </ng-container>
+                  {{ getRecentMessageMeta(message) }}
                 </p>
               </div>
             </li>

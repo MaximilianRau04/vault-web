@@ -1,3 +1,16 @@
+/* Shared accent colors so own bubbles and send button stay visually consistent. */
+:host {
+  --chat-accent-bg: #2563eb;
+  --chat-accent-border: #1d4ed8;
+  --chat-accent-hover: #1d4ed8;
+}
+
+:host-context(.dark-theme) {
+  --chat-accent-bg: #3b82f6;
+  --chat-accent-border: #60a5fa;
+  --chat-accent-hover: #2563eb;
+}
+
 /* Private Chat Dialog Theme Styles */
 .fixed {
   background-color: var(--color-background);
@@ -61,16 +74,16 @@ button {
 }
 
 .my-message {
-  background-color: #2563eb !important;
+  background-color: var(--chat-accent-bg) !important;
   color: #fff !important;
-  border: 2px solid #1d4ed8;
+  border: 2px solid var(--chat-accent-border);
   box-shadow: 0 2px 8px 0 rgba(37, 99, 235, 0.1);
 }
 
 :root.dark-theme .my-message {
-  background-color: #3b82f6 !important;
+  background-color: var(--chat-accent-bg) !important;
   color: #fff !important;
-  border: 2px solid #60a5fa;
+  border: 2px solid var(--chat-accent-border);
 }
 
 .bg-blue-500 {
@@ -99,12 +112,13 @@ input {
   }
 }
 
-button[type="submit"] {
-  background-color: var(--color-primary);
+.send-btn {
+  background-color: var(--chat-accent-bg);
+  border: 2px solid var(--chat-accent-border);
   color: #ffffff;
 
   &:hover {
-    background-color: var(--color-primary-hover);
+    background-color: var(--chat-accent-hover);
     color: #ffffff;
   }
 }

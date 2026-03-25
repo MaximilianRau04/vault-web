@@ -16,8 +16,9 @@ export class AppComponent {
 
   constructor(
     private router: Router,
-    private themeService: ThemeService,
+    public themeService: ThemeService,
   ) {
+    this.showNavbar = !['/login', '/register'].includes(this.router.url);
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
@@ -26,5 +27,13 @@ export class AppComponent {
           event.urlAfterRedirects,
         );
       });
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
+  }
+
+  get isDarkTheme(): boolean {
+    return this.themeService.getCurrentTheme() === 'dark';
   }
 }

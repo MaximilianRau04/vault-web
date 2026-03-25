@@ -8,9 +8,14 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { Router } from '@angular/router';
 import { DashboardService } from '../../services/dashboard.service';
 import { UserDashboardDto } from '../../models/dtos/UserDashboardDto';
 import { AuthService } from '../../services/auth.service';
+import {
+  MessagePreview,
+  PrivateChatSummary,
+} from '../../models/dtos/UserDashboardDto';
 
 interface StatHighlight {
   label: string;
@@ -35,6 +40,7 @@ export class DashboardComponent implements OnInit {
   isSavingPassword = false;
   passwordSuccess = '';
   passwordError = '';
+  private privateChatParticipants = new Map<number, string>();
   private readonly passwordComplexity =
     /(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+/;
 
@@ -42,6 +48,7 @@ export class DashboardComponent implements OnInit {
     private dashboardService: DashboardService,
     private fb: FormBuilder,
     private authService: AuthService,
+    private router: Router,
   ) {
     this.passwordForm = this.createPasswordForm();
   }
@@ -52,6 +59,56 @@ export class DashboardComponent implements OnInit {
 
   retry(): void {
     this.loadDashboard(true);
+  }
+
+  openPrivateChat(chat: PrivateChatSummary): void {
+    this.router.navigate(['/'], {
+      queryParams: { privateChatId: chat.id },
+    });
+  }
+
+  openRecentMessage(message: MessagePreview): void {
+    if (!message.privateChatId) {
+      return;
+    }
+    this.router.navigate(['/'], {
+      queryParams: { privateChatId: message.privateChatId },
+    });
+  }
+
+  getPrivateChatPreview(chat: PrivateChatSummary): string {
+    if (!chat.lastMessageAt) {
+      return 'No messages yet';
+    }
+    return `Message sent in chat with ${chat.participant}`;
+  }
+
+  getRecentMessageText(message: MessagePreview): string {
+    if (message.privateChatId) {
+      const participant = this.privateChatParticipants.get(
+        message.privateChatId,
+      );
+      return participant
+        ? `Message sent in chat with ${participant}`
+        : 'Message sent in private chat';
+    }
+
+    return message.content || 'Message sent';
+  }
+
+  getRecentMessageMeta(message: MessagePreview): string {
+    if (message.privateChatId) {
+      const participant = this.privateChatParticipants.get(
+        message.privateChatId,
+      );
+      return participant ? `Chat with ${participant}` : 'Private chat';
+    }
+
+    if (message.groupId) {
+      return `Group chat`;
+    }
+
+    return 'Activity';
   }
 
   trackById(_: number, item: { id: number }): number {
@@ -113,6 +170,9 @@ export class DashboardComponent implements OnInit {
     this.dashboardService.getDashboard().subscribe({
       next: (data) => {
         this.dashboard = data;
+        this.privateChatParticipants = new Map(
+          data.privateChats.map((chat) => [chat.id, chat.participant]),
+        );
         this.isLoading = false;
         this.error = null;
         this.buildHighlights(data);

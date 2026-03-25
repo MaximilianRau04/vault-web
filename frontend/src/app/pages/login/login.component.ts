@@ -53,10 +53,12 @@ export class LoginComponent implements OnInit {
         this.errorMessage =
           apiError?.code === 'AUTH_FAILED'
             ? 'Login failed. Please check your username and password.'
-            : apiError?.code === 'RATE_LIMITED'
-              ? 'Too many attempts. Please try again later.'
-              : apiError?.message ||
-                'Login failed. Please check your username and password.';
+            : apiError?.code === 'VALIDATION_ERROR'
+              ? 'Please enter both username and password.'
+              : apiError?.code === 'RATE_LIMITED'
+                ? 'Too many attempts. Please try again later.'
+                : apiError?.message ||
+                  'Login failed. Please check your username and password.';
         console.error('Login error:', err);
       },
     });
