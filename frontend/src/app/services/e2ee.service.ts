@@ -278,6 +278,8 @@ export class E2eeService {
         'jwk',
         keyPair.privateKey,
       );
+      // Security note (v1): private key material is persisted for cross-reload continuity.
+      // This is a known limitation and should be migrated to non-extractable IndexedDB storage.
       localStorage.setItem(
         this.deviceKeyPairKey,
         JSON.stringify({ publicKey, privateKey }),
@@ -560,6 +562,8 @@ export class E2eeService {
     );
     const publicKey = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
     const privateKey = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
+    // Security note (v1): private key material is persisted for cross-reload continuity.
+    // This is a known limitation and should be migrated to non-extractable IndexedDB storage.
     const updatedIdentity = {
       ...identity,
       publicKey,

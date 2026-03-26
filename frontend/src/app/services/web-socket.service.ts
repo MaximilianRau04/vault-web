@@ -81,16 +81,28 @@ export class WebSocketService {
       };
 
       let unsubscribeFn: (() => void) | undefined;
+      let isUnsubscribed = false;
+      let queuedSubscribe: (() => void) | undefined;
 
       if (!this.connected) {
-        this.connectCallbacks.push(() => {
+        queuedSubscribe = () => {
+          if (isUnsubscribed) {
+            return;
+          }
           unsubscribeFn = subscribeAction();
-        });
+        };
+        this.connectCallbacks.push(queuedSubscribe);
       } else {
         unsubscribeFn = subscribeAction();
       }
 
       return () => {
+        isUnsubscribed = true;
+        if (!unsubscribeFn && queuedSubscribe) {
+          this.connectCallbacks = this.connectCallbacks.filter(
+            (cb) => cb !== queuedSubscribe,
+          );
+        }
         if (unsubscribeFn) {
           unsubscribeFn();
         }
@@ -117,16 +129,28 @@ export class WebSocketService {
       };
 
       let unsubscribeFn: (() => void) | undefined;
+      let isUnsubscribed = false;
+      let queuedSubscribe: (() => void) | undefined;
 
       if (!this.connected) {
-        this.connectCallbacks.push(() => {
+        queuedSubscribe = () => {
+          if (isUnsubscribed) {
+            return;
+          }
           unsubscribeFn = subscribeAction();
-        });
+        };
+        this.connectCallbacks.push(queuedSubscribe);
       } else {
         unsubscribeFn = subscribeAction();
       }
 
       return () => {
+        isUnsubscribed = true;
+        if (!unsubscribeFn && queuedSubscribe) {
+          this.connectCallbacks = this.connectCallbacks.filter(
+            (cb) => cb !== queuedSubscribe,
+          );
+        }
         if (unsubscribeFn) {
           unsubscribeFn();
         }

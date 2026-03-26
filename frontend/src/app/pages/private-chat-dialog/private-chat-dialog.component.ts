@@ -65,6 +65,7 @@ export class PrivateChatDialogComponent
   isSearchOpen = false;
   searchQuery = '';
   matchedMessageIndexes: number[] = [];
+  private matchedMessageIndexSet = new Set<number>();
   activeMatchPosition = -1;
 
   constructor(
@@ -316,6 +317,7 @@ export class PrivateChatDialogComponent
 
     if (!query) {
       this.matchedMessageIndexes = [];
+      this.matchedMessageIndexSet.clear();
       this.activeMatchPosition = -1;
       return;
     }
@@ -324,6 +326,7 @@ export class PrivateChatDialogComponent
       .map((msg, index) => ({ index, content: msg.content.toLowerCase() }))
       .filter((entry) => entry.content.includes(query))
       .map((entry) => entry.index);
+    this.matchedMessageIndexSet = new Set(this.matchedMessageIndexes);
 
     this.activeMatchPosition = this.matchedMessageIndexes.length ? 0 : -1;
     this.scrollToActiveSearchMatch();
@@ -356,7 +359,7 @@ export class PrivateChatDialogComponent
   }
 
   isMessageMatch(index: number): boolean {
-    return this.matchedMessageIndexes.includes(index);
+    return this.matchedMessageIndexSet.has(index);
   }
 
   isActiveSearchMatch(index: number): boolean {

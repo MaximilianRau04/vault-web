@@ -14,10 +14,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
+import vaultWeb.dtos.ChatMessageDto;
 import vaultWeb.dtos.DeviceDto;
 import vaultWeb.exceptions.UnauthorizedException;
 import vaultWeb.exceptions.notfound.PrivateChatNotFoundException;
+import vaultWeb.models.ChatMessage;
 import vaultWeb.models.Device;
 import vaultWeb.models.PrivateChat;
 import vaultWeb.models.User;
@@ -82,7 +85,7 @@ class PrivateChatControllerTest {
     when(privateChatRepository.findById(7L)).thenReturn(Optional.of(chat));
 
     assertThrows(
-        UnauthorizedException.class,
+        AccessDeniedException.class,
         () -> privateChatController.getPrivateChatDevices(7L, authentication));
     verify(deviceRepository, times(0)).findByUserIn(any());
   }
@@ -102,6 +105,61 @@ class PrivateChatControllerTest {
   void shouldRejectGetPrivateChatDevices_WhenUnauthenticated() {
     assertThrows(
         UnauthorizedException.class, () -> privateChatController.getPrivateChatDevices(7L, null));
+    verify(privateChatRepository, times(0)).findById(any());
+  }
+
+  @Test
+  void shouldGetPrivateChatMessages_WhenUserIsParticipant() {
+    User alice = createUser(1L, "alice");
+    User bob = createUser(2L, "bob");
+    PrivateChat chat = new PrivateChat();
+    chat.setId(7L);
+    chat.setUser1(alice);
+    chat.setUser2(bob);
+
+    ChatMessage message = new ChatMessage();
+    message.setPrivateChat(chat);
+    message.setSender(alice);
+    message.setSenderDeviceId("alice-device");
+    message.setE2eePayload("{\"v\":1}");
+    message.setTimestamp(java.time.Instant.parse("2026-03-26T10:15:30Z"));
+
+    Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
+    when(authentication.getName()).thenReturn("alice");
+    when(privateChatRepository.findById(7L)).thenReturn(Optional.of(chat));
+    when(chatMessageRepository.findByPrivateChatIdOrderByTimestampAsc(7L))
+        .thenReturn(List.of(message));
+
+    List<ChatMessageDto> response =
+        privateChatController.getPrivateChatMessages(7L, authentication);
+
+    assertEquals(1, response.size());
+    assertEquals("{\"v\":1}", response.get(0).getE2eePayload());
+    assertEquals("alice", response.get(0).getSenderUsername());
+  }
+
+  @Test
+  void shouldRejectGetPrivateChatMessages_WhenUserIsNotParticipant() {
+    User alice = createUser(1L, "alice");
+    User bob = createUser(2L, "bob");
+    PrivateChat chat = new PrivateChat();
+    chat.setId(7L);
+    chat.setUser1(alice);
+    chat.setUser2(bob);
+
+    Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
+    when(authentication.getName()).thenReturn("mallory");
+    when(privateChatRepository.findById(7L)).thenReturn(Optional.of(chat));
+
+    assertThrows(
+        AccessDeniedException.class,
+        () -> privateChatController.getPrivateChatMessages(7L, authentication));
+  }
+
+  @Test
+  void shouldRejectGetPrivateChatMessages_WhenUnauthenticated() {
+    assertThrows(
+        UnauthorizedException.class, () -> privateChatController.getPrivateChatMessages(7L, null));
     verify(privateChatRepository, times(0)).findById(any());
   }
 }

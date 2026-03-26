@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import vaultWeb.dtos.BatchOperationDto;
@@ -77,9 +78,11 @@ public class PrivateChatController {
   @ApiResponse(
       responseCode = "401",
       description = "Unauthorized request. You must provide an authentication token.")
-  public List<ChatMessageDto> getPrivateChatMessages(@RequestParam Long privateChatId) {
+  public List<ChatMessageDto> getPrivateChatMessages(
+      @RequestParam Long privateChatId, Authentication authentication) {
+    PrivateChat chat = getAuthorizedPrivateChat(privateChatId, authentication);
     List<ChatMessage> messages =
-        chatMessageRepository.findByPrivateChatIdOrderByTimestampAsc(privateChatId);
+        chatMessageRepository.findByPrivateChatIdOrderByTimestampAsc(chat.getId());
 
     return messages.stream()
         .map(
@@ -88,7 +91,7 @@ public class PrivateChatController {
               dto.setE2eePayload(message.getE2eePayload());
               dto.setTimestamp(message.getTimestamp().toString());
               dto.setGroupId(null);
-              dto.setPrivateChatId(privateChatId);
+              dto.setPrivateChatId(chat.getId());
               dto.setSenderId(message.getSender().getId());
               dto.setSenderUsername(message.getSender().getUsername());
               dto.setSenderDeviceId(message.getSenderDeviceId());
@@ -105,9 +108,19 @@ public class PrivateChatController {
               + "The current user must be a participant.")
   public List<DeviceDto> getPrivateChatDevices(
       @RequestParam Long privateChatId, Authentication authentication) {
+    PrivateChat chat = getAuthorizedPrivateChat(privateChatId, authentication);
+    List<User> users =
+        java.util.stream.Stream.of(chat.getUser1(), chat.getUser2())
+            .filter(u -> u != null)
+            .toList();
+    return deviceRepository.findByUserIn(users).stream().map(DeviceDto::from).toList();
+  }
+
+  private PrivateChat getAuthorizedPrivateChat(Long privateChatId, Authentication authentication) {
     if (authentication == null) {
       throw new UnauthorizedException("User not authenticated");
     }
+
     PrivateChat chat =
         privateChatRepository
             .findById(privateChatId)
@@ -117,13 +130,9 @@ public class PrivateChatController {
         (chat.getUser1() != null && username.equals(chat.getUser1().getUsername()))
             || (chat.getUser2() != null && username.equals(chat.getUser2().getUsername()));
     if (!isParticipant) {
-      throw new UnauthorizedException("Not allowed to access devices for this chat");
+      throw new AccessDeniedException("Not allowed to access this private chat");
     }
-    List<User> users =
-        java.util.stream.Stream.of(chat.getUser1(), chat.getUser2())
-            .filter(u -> u != null)
-            .toList();
-    return deviceRepository.findByUserIn(users).stream().map(DeviceDto::from).toList();
+    return chat;
   }
 
   @GetMapping("/user-chats")

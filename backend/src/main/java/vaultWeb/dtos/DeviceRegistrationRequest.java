@@ -1,6 +1,7 @@
 package vaultWeb.dtos;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DeviceRegistrationRequest {
-  @NotBlank private String deviceId;
-  @NotBlank private String publicKey;
+  @Size(max = 64)
+  @NotBlank
+  private String deviceId;
+
+  @Size(max = 4096)
+  @NotBlank
+  private String publicKey;
 }
