@@ -168,6 +168,7 @@ export class E2eeService {
           plaintext,
           keyPair.privateKey,
           recipientPublicKey,
+          this.buildAad(device.deviceId, deviceId, publicKeyJwk),
         );
         payload.recipients[device.deviceId] = encrypted;
       }),
@@ -197,6 +198,11 @@ export class E2eeService {
           entry,
           keyPair.privateKey,
           senderPublicKey,
+          this.buildAad(
+            deviceId,
+            payload.senderDeviceId,
+            payload.senderPublicKey,
+          ),
         );
       }
       this.migrateLegacyIdentity(username);
@@ -218,6 +224,11 @@ export class E2eeService {
             entry,
             keyPair.privateKey,
             senderPublicKey,
+            this.buildAad(
+              identity.deviceId,
+              payload.senderDeviceId,
+              payload.senderPublicKey,
+            ),
           );
           this.setActiveIdentityDeviceId(username, identity.deviceId);
           return plaintext;
@@ -292,6 +303,7 @@ export class E2eeService {
     plaintext: string,
     senderPrivateKey: CryptoKey,
     recipientPublicKey: CryptoKey,
+    aad: Uint8Array,
   ): Promise<E2eeRecipientPayload> {
     const sharedSecret = await crypto.subtle.deriveBits(
       { name: 'ECDH', public: recipientPublicKey },
@@ -302,7 +314,7 @@ export class E2eeService {
     const aesKey = await this.deriveAesKey(sharedSecret, salt.buffer);
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const ciphertext = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv, additionalData: aad },
       aesKey,
       this.encoder.encode(plaintext),
     );
@@ -318,6 +330,7 @@ export class E2eeService {
     entry: E2eeRecipientPayload,
     recipientPrivateKey: CryptoKey,
     senderPublicKey: CryptoKey,
+    aad: Uint8Array,
   ): Promise<string> {
     const sharedSecret = await crypto.subtle.deriveBits(
       { name: 'ECDH', public: senderPublicKey },
@@ -328,12 +341,39 @@ export class E2eeService {
     const aesKey = await this.deriveAesKey(sharedSecret, salt);
     const iv = new Uint8Array(this.base64ToArrayBuffer(entry.iv));
     const ciphertext = this.base64ToArrayBuffer(entry.ciphertext);
-    const plaintext = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
-      aesKey,
-      ciphertext,
-    );
+    let plaintext: ArrayBuffer;
+    try {
+      plaintext = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv, additionalData: aad },
+        aesKey,
+        ciphertext,
+      );
+    } catch {
+      // Backward compatibility for payloads created before AAD was introduced.
+      plaintext = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        aesKey,
+        ciphertext,
+      );
+    }
     return this.decoder.decode(plaintext);
+  }
+
+  private buildAad(
+    recipientDeviceId: string,
+    senderDeviceId: string,
+    senderPublicKey: JsonWebKey,
+  ): Uint8Array {
+    const canonical = JSON.stringify({
+      v: 1,
+      recipientDeviceId,
+      senderDeviceId,
+      senderCrv: senderPublicKey.crv ?? '',
+      senderKty: senderPublicKey.kty ?? '',
+      senderX: senderPublicKey.x ?? '',
+      senderY: senderPublicKey.y ?? '',
+    });
+    return this.encoder.encode(canonical);
   }
 
   private async deriveAesKey(

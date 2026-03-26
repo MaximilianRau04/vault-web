@@ -177,6 +177,9 @@ export class PrivateChatDialogComponent
   }
 
   private decryptAndAppendMessage(message: ChatMessageDto): void {
+    if (this.isDuplicateMessage(message)) {
+      return;
+    }
     this.toViewMessage(message)
       .then((viewMessage) => {
         if (!viewMessage) {
@@ -261,7 +264,12 @@ export class PrivateChatDialogComponent
         e2eePayload: JSON.stringify(payload),
       };
 
-      this.wsService.sendPrivateMessage(message);
+      const sent = this.wsService.sendPrivateMessage(message);
+      if (!sent) {
+        console.error('WebSocket not connected. Message not sent.');
+        return;
+      }
+      this.decryptAndAppendMessage(message);
       this.newMessage = '';
     } catch (error) {
       console.error('Failed to send encrypted message', error);
@@ -395,5 +403,14 @@ export class PrivateChatDialogComponent
     }
 
     return { text: decrypted, clientTimestamp: null };
+  }
+
+  private isDuplicateMessage(message: ChatMessageDto): boolean {
+    return this.messages.some(
+      (existing) =>
+        existing.privateChatId === message.privateChatId &&
+        existing.senderUsername === message.senderUsername &&
+        existing.timestamp === message.timestamp,
+    );
   }
 }

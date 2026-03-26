@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { PrivateChatDto } from '../models/dtos/PrivateChatDto';
@@ -33,9 +33,10 @@ export class PrivateChatService {
   }
 
   getDevices(privateChatId: number): Observable<DeviceDto[]> {
-    return this.http.get<DeviceDto[]>(
-      `${this.apiUrl}/private-chats/devices?privateChatId=${privateChatId}`,
-    );
+    const params = new HttpParams().set('privateChatId', String(privateChatId));
+    return this.http.get<DeviceDto[]>(`${this.apiUrl}/private-chats/devices`, {
+      params,
+    });
   }
 
   getUserPrivateChats(): Observable<PrivateChatDto[]> {

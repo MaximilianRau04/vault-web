@@ -48,25 +48,29 @@ export class WebSocketService {
     this.client.activate();
   }
 
-  sendPrivateMessage(message: ChatMessageDto) {
+  sendPrivateMessage(message: ChatMessageDto): boolean {
     if (this.connected) {
       this.client?.publish({
         destination: '/app/chat.private.send',
         body: JSON.stringify(message),
       });
+      return true;
     } else {
       console.warn('WebSocket not connected yet. Message not sent.');
+      return false;
     }
   }
 
-  sendGroupMessage(message: ChatMessageDto) {
+  sendGroupMessage(message: ChatMessageDto): boolean {
     if (this.connected) {
       this.client?.publish({
         destination: '/app/chat.send',
         body: JSON.stringify(message),
       });
+      return true;
     } else {
       console.warn('WebSocket not connected yet. Message not sent.');
+      return false;
     }
   }
 

@@ -1,6 +1,7 @@
 package vaultWeb.controllers;
 
 import jakarta.validation.Valid;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +68,9 @@ public class ChatController {
     String user1 = savedMessage.getPrivateChat().getUser1().getUsername();
     String user2 = savedMessage.getPrivateChat().getUser2().getUsername();
 
-    Set<String> recipients = Set.of(user1, user2);
+    Set<String> recipients = new LinkedHashSet<>();
+    recipients.add(user1);
+    recipients.add(user2);
 
     recipients.forEach(
         user -> messagingTemplate.convertAndSendToUser(user, "/queue/private", responseDto));
