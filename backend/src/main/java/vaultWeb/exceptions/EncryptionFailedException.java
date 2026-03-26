@@ -8,6 +8,15 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class EncryptionFailedException extends RuntimeException {
 
   /**
+   * Constructs a new EncryptionFailedException with a specific message.
+   *
+   * @param message the detail message
+   */
+  public EncryptionFailedException(String message) {
+    super(message);
+  }
+
+  /**
    * Constructs a new EncryptionFailedException for a specific message and cause.
    *
    * @param message the detail message

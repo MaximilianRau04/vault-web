@@ -16,11 +16,11 @@ public class ChatMessage {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, columnDefinition = "TEXT")
-  private String cipherText;
+  @Column(nullable = true, columnDefinition = "TEXT")
+  private String e2eePayload;
 
-  @Column(nullable = false, length = 32)
-  private String iv;
+  @Column(length = 64)
+  private String senderDeviceId;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "sender_id", nullable = false)

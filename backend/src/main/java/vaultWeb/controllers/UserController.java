@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vaultWeb.dtos.user.ChangePasswordRequest;
+import vaultWeb.dtos.user.LoginRequest;
 import vaultWeb.dtos.user.UserDto;
 import vaultWeb.dtos.user.UserResponseDto;
 import vaultWeb.exceptions.UnauthorizedException;
@@ -77,8 +78,9 @@ public class UserController {
   @PostMapping("/login")
   @ApiResponse(responseCode = "200", description = "Login successful.")
   @ApiResponse(responseCode = "401", description = "Username or password is incorrect.")
-  public ResponseEntity<?> login(@Valid @RequestBody UserDto user, HttpServletResponse response) {
-    LoginResult res = authService.login(user.getUsername(), user.getPassword());
+  public ResponseEntity<?> login(
+      @Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    LoginResult res = authService.login(loginRequest.getUsername(), loginRequest.getPassword());
     refreshTokenService.create(res.user(), response);
     return ResponseEntity.ok(Map.of("token", res.accessToken()));
   }

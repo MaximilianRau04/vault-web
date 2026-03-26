@@ -28,14 +28,6 @@ input {
   }
 }
 
-button[type="submit"] {
-  background-color: var(--color-primary);
-
-  &:hover {
-    background-color: var(--color-primary-hover);
-  }
-}
-
 .text-gray-600 {
   color: var(--color-text-secondary);
 }

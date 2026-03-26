@@ -1,9 +1,10 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { PrivateChatDto } from '../models/dtos/PrivateChatDto';
 import { environment } from '../../environments/environment';
 import { ChatMessageDto } from '../models/dtos/ChatMessageDto';
+import { DeviceDto } from '../models/dtos/DeviceDto';
 import { BatchOperationResponse } from '../models/dtos/BatchOperationResponse';
 import { CreateGroupFromChatsRequest } from '../models/dtos/CreateGroupFromChatsRequest';
 import { ClearChatRequestDto } from '../models/dtos/ClearChatRequestDto';
@@ -29,6 +30,13 @@ export class PrivateChatService {
     return this.http.get<ChatMessageDto[]>(
       `${this.apiUrl}/private-chats/private?privateChatId=${privateChatId}`,
     );
+  }
+
+  getDevices(privateChatId: number): Observable<DeviceDto[]> {
+    const params = new HttpParams().set('privateChatId', String(privateChatId));
+    return this.http.get<DeviceDto[]>(`${this.apiUrl}/private-chats/devices`, {
+      params,
+    });
   }
 
   getUserPrivateChats(): Observable<PrivateChatDto[]> {

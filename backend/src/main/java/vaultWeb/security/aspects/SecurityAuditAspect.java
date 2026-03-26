@@ -20,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import vaultWeb.dtos.user.LoginRequest;
 import vaultWeb.dtos.user.UserDto;
 import vaultWeb.repositories.UserRepository;
 import vaultWeb.security.JwtUtil;
@@ -126,10 +127,17 @@ public class SecurityAuditAspect {
       }
     }
 
-    // 4. Method arguments (UserDto for login/register)
+    // 4. Method arguments (UserDto/LoginRequest for login/register)
     for (Object arg : joinPoint.getArgs()) {
-      if (arg instanceof UserDto userDto && userDto.getUsername() != null) {
+      if (arg instanceof UserDto userDto
+          && userDto.getUsername() != null
+          && !userDto.getUsername().isBlank()) {
         return userDto.getUsername();
+      }
+      if (arg instanceof LoginRequest loginRequest
+          && loginRequest.getUsername() != null
+          && !loginRequest.getUsername().isBlank()) {
+        return loginRequest.getUsername();
       }
     }
 

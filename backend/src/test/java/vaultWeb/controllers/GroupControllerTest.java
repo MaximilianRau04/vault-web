@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,12 +19,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import vaultWeb.dtos.DeviceDto;
 import vaultWeb.dtos.GroupDto;
 import vaultWeb.exceptions.AlreadyMemberException;
+import vaultWeb.exceptions.UnauthorizedException;
 import vaultWeb.exceptions.notfound.GroupNotFoundException;
 import vaultWeb.exceptions.notfound.NotMemberException;
+import vaultWeb.models.Device;
 import vaultWeb.models.Group;
 import vaultWeb.models.User;
+import vaultWeb.repositories.DeviceRepository;
+import vaultWeb.repositories.GroupMemberRepository;
 import vaultWeb.services.GroupService;
 import vaultWeb.services.auth.AuthService;
 
@@ -33,6 +39,8 @@ class GroupControllerTest {
   @Mock private GroupService groupService;
 
   @Mock private AuthService authService;
+  @Mock private GroupMemberRepository groupMemberRepository;
+  @Mock private DeviceRepository deviceRepository;
 
   @InjectMocks private GroupController groupController;
 
@@ -269,5 +277,53 @@ class GroupControllerTest {
     assertThrows(
         GroupNotFoundException.class, () -> groupController.updateGroup(999L, testGroupDto));
     verify(groupService, times(1)).updateGroup(999L, testGroupDto);
+  }
+
+  @Test
+  void shouldGetGroupDevices_WhenUserIsMember() {
+    User currentUser = createTestUser(1L, "member");
+    User member1 = createTestUser(1L, "member");
+    User member2 = createTestUser(2L, "member2");
+    Device device1 = new Device();
+    device1.setDeviceId("dev-1");
+    device1.setPublicKey("pk-1");
+    device1.setUser(member1);
+    Device device2 = new Device();
+    device2.setDeviceId("dev-2");
+    device2.setPublicKey("pk-2");
+    device2.setUser(member2);
+
+    when(authService.getCurrentUser()).thenReturn(currentUser);
+    when(groupMemberRepository.findByGroupIdAndUserId(10L, 1L))
+        .thenReturn(Optional.of(mock(vaultWeb.models.GroupMember.class)));
+    when(groupService.getMembers(10L)).thenReturn(List.of(member1, member2));
+    when(deviceRepository.findByUserIn(List.of(member1, member2)))
+        .thenReturn(List.of(device1, device2));
+
+    ResponseEntity<List<DeviceDto>> response = groupController.getGroupDevices(10L);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(2, response.getBody().size());
+    assertEquals("dev-1", response.getBody().get(0).getDeviceId());
+    verify(deviceRepository).findByUserIn(List.of(member1, member2));
+  }
+
+  @Test
+  void shouldRejectGetGroupDevices_WhenUserIsNotMember() {
+    User currentUser = createTestUser(1L, "member");
+    when(authService.getCurrentUser()).thenReturn(currentUser);
+    when(groupMemberRepository.findByGroupIdAndUserId(10L, 1L)).thenReturn(Optional.empty());
+
+    assertThrows(NotMemberException.class, () -> groupController.getGroupDevices(10L));
+    verify(deviceRepository, times(0)).findByUserIn(any());
+  }
+
+  @Test
+  void shouldRejectGetGroupDevices_WhenUserIsUnauthenticated() {
+    when(authService.getCurrentUser()).thenReturn(null);
+
+    assertThrows(UnauthorizedException.class, () -> groupController.getGroupDevices(10L));
+    verify(groupMemberRepository, times(0)).findByGroupIdAndUserId(any(), any());
+    verify(deviceRepository, times(0)).findByUserIn(any());
   }
 }

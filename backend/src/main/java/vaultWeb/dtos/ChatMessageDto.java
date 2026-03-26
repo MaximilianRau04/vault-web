@@ -9,10 +9,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatMessageDto {
-  @NotBlank private String content;
+  private String content;
   private String timestamp;
   private Long groupId;
   private Long privateChatId;
   private Long senderId;
   private String senderUsername;
+  @NotBlank private String senderDeviceId;
+  @NotBlank private String e2eePayload;
 }

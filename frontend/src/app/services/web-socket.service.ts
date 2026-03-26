@@ -48,14 +48,29 @@ export class WebSocketService {
     this.client.activate();
   }
 
-  sendPrivateMessage(message: ChatMessageDto) {
+  sendPrivateMessage(message: ChatMessageDto): boolean {
     if (this.connected) {
       this.client?.publish({
         destination: '/app/chat.private.send',
         body: JSON.stringify(message),
       });
+      return true;
     } else {
       console.warn('WebSocket not connected yet. Message not sent.');
+      return false;
+    }
+  }
+
+  sendGroupMessage(message: ChatMessageDto): boolean {
+    if (this.connected) {
+      this.client?.publish({
+        destination: '/app/chat.send',
+        body: JSON.stringify(message),
+      });
+      return true;
+    } else {
+      console.warn('WebSocket not connected yet. Message not sent.');
+      return false;
     }
   }
 
@@ -66,16 +81,28 @@ export class WebSocketService {
       };
 
       let unsubscribeFn: (() => void) | undefined;
+      let isUnsubscribed = false;
+      let queuedSubscribe: (() => void) | undefined;
 
       if (!this.connected) {
-        this.connectCallbacks.push(() => {
+        queuedSubscribe = () => {
+          if (isUnsubscribed) {
+            return;
+          }
           unsubscribeFn = subscribeAction();
-        });
+        };
+        this.connectCallbacks.push(queuedSubscribe);
       } else {
         unsubscribeFn = subscribeAction();
       }
 
       return () => {
+        isUnsubscribed = true;
+        if (!unsubscribeFn && queuedSubscribe) {
+          this.connectCallbacks = this.connectCallbacks.filter(
+            (cb) => cb !== queuedSubscribe,
+          );
+        }
         if (unsubscribeFn) {
           unsubscribeFn();
         }
@@ -86,6 +113,57 @@ export class WebSocketService {
   private subscribeInternal(observer: Observer<ChatMessageDto>) {
     const subscription = this.client?.subscribe(
       '/user/queue/private',
+      (message) => {
+        const msg = JSON.parse(message.body) as ChatMessageDto;
+        observer.next(msg);
+      },
+    );
+
+    return () => subscription?.unsubscribe();
+  }
+
+  subscribeToGroupMessages(groupId: number): Observable<ChatMessageDto> {
+    return new Observable((observer) => {
+      const subscribeAction = () => {
+        return this.subscribeToGroupInternal(groupId, observer);
+      };
+
+      let unsubscribeFn: (() => void) | undefined;
+      let isUnsubscribed = false;
+      let queuedSubscribe: (() => void) | undefined;
+
+      if (!this.connected) {
+        queuedSubscribe = () => {
+          if (isUnsubscribed) {
+            return;
+          }
+          unsubscribeFn = subscribeAction();
+        };
+        this.connectCallbacks.push(queuedSubscribe);
+      } else {
+        unsubscribeFn = subscribeAction();
+      }
+
+      return () => {
+        isUnsubscribed = true;
+        if (!unsubscribeFn && queuedSubscribe) {
+          this.connectCallbacks = this.connectCallbacks.filter(
+            (cb) => cb !== queuedSubscribe,
+          );
+        }
+        if (unsubscribeFn) {
+          unsubscribeFn();
+        }
+      };
+    });
+  }
+
+  private subscribeToGroupInternal(
+    groupId: number,
+    observer: Observer<ChatMessageDto>,
+  ) {
+    const subscription = this.client?.subscribe(
+      `/topic/group/${groupId}`,
       (message) => {
         const msg = JSON.parse(message.body) as ChatMessageDto;
         observer.next(msg);

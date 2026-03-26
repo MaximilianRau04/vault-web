@@ -248,9 +248,8 @@ class UserControllerIntegrationTest extends IntegrationTestBase {
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(testUser)))
           .andExpect(status().isConflict())
-          .andExpect(
-              content()
-                  .string("Registration error: Username '" + TEST_USERNAME + "' is already taken"));
+          .andExpect(jsonPath("$.code").value("USERNAME_TAKEN"))
+          .andExpect(jsonPath("$.message").value("Registration failed"));
 
       assertTrue(userRepository.findByUsername(testUser.getUsername()).isPresent());
     }
@@ -304,7 +303,8 @@ class UserControllerIntegrationTest extends IntegrationTestBase {
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(wrongPasswordUser)))
           .andExpect(status().isUnauthorized())
-          .andExpect(content().string("Authentication failed"));
+          .andExpect(jsonPath("$.code").value("AUTH_FAILED"))
+          .andExpect(jsonPath("$.message").value("Authentication failed"));
     }
 
     @Test
@@ -317,7 +317,8 @@ class UserControllerIntegrationTest extends IntegrationTestBase {
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(nonExistentUser)))
           .andExpect(status().isUnauthorized())
-          .andExpect(content().string("Authentication failed"));
+          .andExpect(jsonPath("$.code").value("AUTH_FAILED"))
+          .andExpect(jsonPath("$.message").value("Authentication failed"));
     }
   }
 

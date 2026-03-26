@@ -6,7 +6,7 @@ import { PrivateChatDialogComponent } from '../private-chat-dialog/private-chat-
 import { PrivateChatService } from '../../services/private-chat.service';
 import { PrivateChatDto } from '../../models/dtos/PrivateChatDto';
 import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 
@@ -33,16 +33,27 @@ export class HomeComponent implements OnInit {
   showGroupDialog: boolean = false;
   newGroupName = '';
   groupDescription = '';
+  private requestedPrivateChatId: number | null = null;
 
   constructor(
     private userService: UserService,
     private privateChatService: PrivateChatService,
     private authService: AuthService,
     private router: Router,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
     this.currentUsername = this.authService.getUsername();
+    this.route.queryParamMap.subscribe((params) => {
+      const rawChatId = params.get('privateChatId');
+      const parsedChatId = rawChatId ? Number(rawChatId) : NaN;
+      this.requestedPrivateChatId =
+        Number.isInteger(parsedChatId) && parsedChatId > 0
+          ? parsedChatId
+          : null;
+      this.tryOpenRequestedPrivateChat();
+    });
 
     if (!this.currentUsername) {
       this.router.navigate(['/login']);
@@ -64,6 +75,7 @@ export class HomeComponent implements OnInit {
         this.users = users || [];
         this.privateChats = chats || [];
         this.isLoading = false;
+        this.tryOpenRequestedPrivateChat();
       },
       error: () => {
         this.error = 'Failed to Load data.';
@@ -126,6 +138,28 @@ export class HomeComponent implements OnInit {
       chat.username1 === this.currentUsername ? chat.username2 : chat.username1;
     this.selectedUsername = otherUserName;
     this.privateChatId = chat.id;
+  }
+
+  private tryOpenRequestedPrivateChat(): void {
+    if (!this.requestedPrivateChatId || this.isLoading) {
+      return;
+    }
+
+    const chatToOpen = this.privateChats.find(
+      (chat) => chat.id === this.requestedPrivateChatId,
+    );
+    if (!chatToOpen) {
+      return;
+    }
+
+    this.openPrivateChat(chatToOpen);
+    this.requestedPrivateChatId = null;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { privateChatId: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   getOtherUsername(chat: PrivateChatDto): string {

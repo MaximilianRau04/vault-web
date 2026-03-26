@@ -7,7 +7,7 @@ import {
   AsyncValidatorFn,
   ValidationErrors,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
 import { Observable, of } from 'rxjs';
@@ -19,11 +19,12 @@ import {
   first,
 } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
+import { extractApiErrorPayload } from '../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss'],
 })
@@ -94,9 +95,12 @@ export class RegisterComponent implements OnInit {
         this.router.navigate(['/login']);
       },
       error: (err) => {
-        this.toastr.error(
-          err.error?.message || 'Registration failed. Try again.',
-        );
+        const apiError = extractApiErrorPayload(err);
+        const message =
+          apiError?.code === 'USERNAME_TAKEN'
+            ? 'Dieser Benutzername ist bereits vergeben.'
+            : apiError?.message || 'Registration failed. Try again.';
+        this.toastr.error(message);
       },
     });
   }

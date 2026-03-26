@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import vaultWeb.dtos.user.ChangePasswordRequest;
+import vaultWeb.dtos.user.LoginRequest;
 import vaultWeb.dtos.user.UserDto;
 import vaultWeb.dtos.user.UserResponseDto;
 import vaultWeb.exceptions.DuplicateUsernameException;
@@ -76,15 +77,15 @@ class UserControllerTest {
 
   @Test
   void shouldLoginSuccessfully() {
-    UserDto userDto = new UserDto("testuser", "password");
+    LoginRequest loginRequest = new LoginRequest("testuser", "password");
     HttpServletResponse responseMock = mock(HttpServletResponse.class);
-    when(authService.login(userDto.getUsername(), userDto.getPassword()))
+    when(authService.login(loginRequest.getUsername(), loginRequest.getPassword()))
         .thenReturn(new LoginResult(createTestUser(1L, "testuser"), "mock-jwt-token"));
     doNothing().when(refreshTokenService).create(any(User.class), any(HttpServletResponse.class));
-    ResponseEntity<?> response = userController.login(userDto, responseMock);
+    ResponseEntity<?> response = userController.login(loginRequest, responseMock);
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals("mock-jwt-token", ((Map<String, String>) response.getBody()).get("token"));
-    verify(authService, times(1)).login(userDto.getUsername(), userDto.getPassword());
+    verify(authService, times(1)).login(loginRequest.getUsername(), loginRequest.getPassword());
     verify(refreshTokenService, times(1)).create(any(User.class), any(HttpServletResponse.class));
   }
 
@@ -176,14 +177,15 @@ class UserControllerTest {
 
   @Test
   void shouldFailLogin_WhenInvalidCredentials() {
-    UserDto userDto = new UserDto("testuser", "wrongpassword");
+    LoginRequest loginRequest = new LoginRequest("testuser", "wrongpassword");
     HttpServletResponse responseMock = mock(HttpServletResponse.class);
 
     // Mock: authService.login() throws BadCredentialsException
-    when(authService.login(userDto.getUsername(), userDto.getPassword()))
+    when(authService.login(loginRequest.getUsername(), loginRequest.getPassword()))
         .thenThrow(new BadCredentialsException("Invalid credentials"));
     // Act & Assert: Verify the exception is thrown (GlobalExceptionHandler handles it in real app)
-    assertThrows(BadCredentialsException.class, () -> userController.login(userDto, responseMock));
+    assertThrows(
+        BadCredentialsException.class, () -> userController.login(loginRequest, responseMock));
     verify(refreshTokenService, never()).create(any(User.class), any(HttpServletResponse.class));
   }
 

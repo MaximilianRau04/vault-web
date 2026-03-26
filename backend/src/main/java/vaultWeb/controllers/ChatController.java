@@ -1,6 +1,7 @@
 package vaultWeb.controllers;
 
 import jakarta.validation.Valid;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,16 +34,23 @@ public class ChatController {
    * @param messageDto DTO containing message content, sender information, and target group
    */
   @MessageMapping("/chat.send")
-  public void sendMessage(@Payload ChatMessageDto messageDto) {
+  public void sendMessage(@Valid @Payload ChatMessageDto messageDto) {
     ChatMessage savedMessage = chatService.saveMessage(messageDto);
 
+    ChatMessageDto responseDto = new ChatMessageDto();
+    responseDto.setE2eePayload(savedMessage.getE2eePayload());
+    responseDto.setTimestamp(savedMessage.getTimestamp().toString());
+    responseDto.setSenderUsername(savedMessage.getSender().getUsername());
+    responseDto.setGroupId(savedMessage.getGroup().getId());
+    responseDto.setSenderDeviceId(savedMessage.getSenderDeviceId());
+
     messagingTemplate.convertAndSend(
-        "/topic/group/" + savedMessage.getGroup().getId(), savedMessage);
+        "/topic/group/" + savedMessage.getGroup().getId(), responseDto);
   }
 
   /**
    * Handles incoming private chat messages from clients and sends them to both users of the private
-   * chat. The message content is decrypted before delivery.
+   * chat. The message content is end-to-end encrypted and never decrypted by the server.
    *
    * @param messageDto DTO containing message content, sender information, and private chat ID
    */
@@ -50,20 +58,19 @@ public class ChatController {
   public void sendPrivateMessage(@Valid @Payload ChatMessageDto messageDto) {
     ChatMessage savedMessage = chatService.saveMessage(messageDto);
 
-    String decryptedContent =
-        chatService.decrypt(savedMessage.getCipherText(), savedMessage.getIv());
-
     ChatMessageDto responseDto = new ChatMessageDto();
-    responseDto.setContent(decryptedContent);
+    responseDto.setE2eePayload(savedMessage.getE2eePayload());
     responseDto.setTimestamp(savedMessage.getTimestamp().toString());
     responseDto.setSenderUsername(savedMessage.getSender().getUsername());
     responseDto.setPrivateChatId(savedMessage.getPrivateChat().getId());
+    responseDto.setSenderDeviceId(savedMessage.getSenderDeviceId());
 
     String user1 = savedMessage.getPrivateChat().getUser1().getUsername();
     String user2 = savedMessage.getPrivateChat().getUser2().getUsername();
 
-    messagingTemplate.convertAndSendToUser(user1, "/queue/private", responseDto);
-    Set<String> recipients = Set.of(user1, user2);
+    Set<String> recipients = new LinkedHashSet<>();
+    recipients.add(user1);
+    recipients.add(user2);
 
     recipients.forEach(
         user -> messagingTemplate.convertAndSendToUser(user, "/queue/private", responseDto));

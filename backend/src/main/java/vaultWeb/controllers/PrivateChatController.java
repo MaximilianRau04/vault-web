@@ -6,18 +6,23 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import vaultWeb.dtos.BatchOperationDto;
 import vaultWeb.dtos.ChatMessageDto;
 import vaultWeb.dtos.ClearChatRequestDto;
 import vaultWeb.dtos.CreateGroupFromChatsRequest;
+import vaultWeb.dtos.DeviceDto;
 import vaultWeb.dtos.PrivateChatDto;
-import vaultWeb.exceptions.DecryptionFailedException;
+import vaultWeb.exceptions.UnauthorizedException;
+import vaultWeb.exceptions.notfound.PrivateChatNotFoundException;
 import vaultWeb.models.ChatMessage;
 import vaultWeb.models.PrivateChat;
+import vaultWeb.models.User;
 import vaultWeb.repositories.ChatMessageRepository;
-import vaultWeb.security.EncryptionUtil;
+import vaultWeb.repositories.DeviceRepository;
+import vaultWeb.repositories.PrivateChatRepository;
 import vaultWeb.services.PrivateChatService;
 
 @RestController
@@ -31,7 +36,8 @@ public class PrivateChatController {
 
   private final PrivateChatService privateChatService;
   private final ChatMessageRepository chatMessageRepository;
-  private final EncryptionUtil encryptionUtil;
+  private final DeviceRepository deviceRepository;
+  private final PrivateChatRepository privateChatRepository;
 
   @GetMapping("/between")
   @Operation(
@@ -63,8 +69,8 @@ public class PrivateChatController {
                     Retrieves all messages from a specific private chat.
                     - 'privateChatId' is the ID of the private chat.
                     - Messages are ordered chronologically by timestamp.
-                    - The message content is decrypted before being sent to the client.
-                    - Returns a list of ChatMessageDto containing decrypted content, sender info, timestamp, and chat ID.
+                    - The message content is end-to-end encrypted and never decrypted by the server.
+                    - Returns a list of ChatMessageDto containing encrypted payload, sender info, timestamp, and chat ID.
                     """)
   @ApiResponse(
       responseCode = "200",
@@ -72,28 +78,61 @@ public class PrivateChatController {
   @ApiResponse(
       responseCode = "401",
       description = "Unauthorized request. You must provide an authentication token.")
-  public List<ChatMessageDto> getPrivateChatMessages(@RequestParam Long privateChatId) {
+  public List<ChatMessageDto> getPrivateChatMessages(
+      @RequestParam Long privateChatId, Authentication authentication) {
+    PrivateChat chat = getAuthorizedPrivateChat(privateChatId, authentication);
     List<ChatMessage> messages =
-        chatMessageRepository.findByPrivateChatIdOrderByTimestampAsc(privateChatId);
+        chatMessageRepository.findByPrivateChatIdOrderByTimestampAsc(chat.getId());
 
     return messages.stream()
         .map(
             message -> {
-              try {
-                String decryptedContent =
-                    encryptionUtil.decrypt(message.getCipherText(), message.getIv());
-                return new ChatMessageDto(
-                    decryptedContent,
-                    message.getTimestamp().toString(),
-                    null,
-                    privateChatId,
-                    message.getSender().getId(),
-                    message.getSender().getUsername());
-              } catch (Exception e) {
-                throw new DecryptionFailedException("Decryption failed", e);
-              }
+              ChatMessageDto dto = new ChatMessageDto();
+              dto.setE2eePayload(message.getE2eePayload());
+              dto.setTimestamp(message.getTimestamp().toString());
+              dto.setGroupId(null);
+              dto.setPrivateChatId(chat.getId());
+              dto.setSenderId(message.getSender().getId());
+              dto.setSenderUsername(message.getSender().getUsername());
+              dto.setSenderDeviceId(message.getSenderDeviceId());
+              return dto;
             })
         .toList();
+  }
+
+  @GetMapping("/devices")
+  @Operation(
+      summary = "Get devices for private chat participants",
+      description =
+          "Retrieves all registered devices of users participating in the private chat. "
+              + "The current user must be a participant.")
+  public List<DeviceDto> getPrivateChatDevices(
+      @RequestParam Long privateChatId, Authentication authentication) {
+    PrivateChat chat = getAuthorizedPrivateChat(privateChatId, authentication);
+    List<User> users =
+        java.util.stream.Stream.of(chat.getUser1(), chat.getUser2())
+            .filter(u -> u != null)
+            .toList();
+    return deviceRepository.findByUserIn(users).stream().map(DeviceDto::from).toList();
+  }
+
+  private PrivateChat getAuthorizedPrivateChat(Long privateChatId, Authentication authentication) {
+    if (authentication == null) {
+      throw new UnauthorizedException("User not authenticated");
+    }
+
+    PrivateChat chat =
+        privateChatRepository
+            .findById(privateChatId)
+            .orElseThrow(() -> new PrivateChatNotFoundException("Private chat not found"));
+    String username = authentication.getName();
+    boolean isParticipant =
+        (chat.getUser1() != null && username.equals(chat.getUser1().getUsername()))
+            || (chat.getUser2() != null && username.equals(chat.getUser2().getUsername()));
+    if (!isParticipant) {
+      throw new AccessDeniedException("Not allowed to access this private chat");
+    }
+    return chat;
   }
 
   @GetMapping("/user-chats")

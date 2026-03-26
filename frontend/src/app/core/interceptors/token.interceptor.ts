@@ -2,17 +2,24 @@ import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, switchMap, throwError, ReplaySubject } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { NetworkStatusService } from '../services/network-status.service';
 
 let refreshTokenSubject = new ReplaySubject<string>(1);
 let isRefreshing = false;
 
 export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
+  const networkStatusService = inject(NetworkStatusService);
 
   // Explicit Authorization Header
   if (req.headers.has('Authorization')) {
     return next(req).pipe(
       catchError((error: HttpErrorResponse) => {
+        if (isBackendUnavailable(error)) {
+          networkStatusService.showBackendUnavailable();
+          return throwError(() => error);
+        }
+
         if (error.status === 401) {
           // If the refresh token request itself fails, we must logout.
           if (req.url.includes('/refresh')) {
@@ -41,6 +48,11 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
+      if (isBackendUnavailable(error)) {
+        networkStatusService.showBackendUnavailable();
+        return throwError(() => error);
+      }
+
       if (error.status !== 401) {
         return throwError(() => error);
       }
@@ -89,3 +101,7 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
     }),
   );
 };
+
+function isBackendUnavailable(error: HttpErrorResponse): boolean {
+  return error.status === 0;
+}

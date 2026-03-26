@@ -1,3 +1,16 @@
+/* Shared accent colors so own bubbles and send button stay visually consistent. */
+:host {
+  --chat-accent-bg: #2563eb;
+  --chat-accent-border: #1d4ed8;
+  --chat-accent-hover: #1d4ed8;
+}
+
+:host-context(.dark-theme) {
+  --chat-accent-bg: #3b82f6;
+  --chat-accent-border: #60a5fa;
+  --chat-accent-hover: #2563eb;
+}
+
 /* Private Chat Dialog Theme Styles */
 .fixed {
   background-color: var(--color-background);
@@ -43,34 +56,95 @@ button {
   background-color: var(--color-background-secondary);
 }
 
+.search-nav-btn {
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
 .flex-1.overflow-y-auto {
   background-color: var(--color-background-secondary);
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
 }
 
 /** Message Bubbles */
 .bg-gray-200 {
-  background-color: #cbd5e1 !important;
-  color: #1e293b !important;
-  border: 1.5px solid #94a3b8;
+  background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.6rem !important;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+  padding: 0.42rem 0.62rem !important;
+  position: relative;
+  overflow: visible;
 }
 
 :root.dark-theme .bg-gray-200 {
-  background-color: #222c3a !important;
+  background: linear-gradient(180deg, #2a3547 0%, #1f2a3b 100%) !important;
   color: #f8fafc !important;
-  border: 1.5px solid #334155;
+  border: 1px solid rgba(100, 116, 139, 0.45);
+  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.35);
 }
 
 .my-message {
-  background-color: #2563eb !important;
+  background-color: var(--chat-accent-bg) !important;
   color: #fff !important;
-  border: 2px solid #1d4ed8;
-  box-shadow: 0 2px 8px 0 rgba(37, 99, 235, 0.1);
+  border: 1px solid
+    color-mix(in srgb, var(--chat-accent-border) 75%, #ffffff 25%);
+  border-radius: 0.6rem !important;
+  box-shadow:
+    0 6px 14px rgba(37, 99, 235, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  padding: 0.42rem 0.62rem !important;
+  position: relative;
+  overflow: visible;
+}
+
+.search-match {
+  box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.35);
+}
+
+.search-active-match {
+  box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.85);
+}
+
+.message-time {
+  margin-top: 0.3rem;
+  font-size: 0.62rem;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  opacity: 0.72;
+  width: 100%;
+  text-align: right;
+}
+
+.my-message .message-time {
+  color: rgba(219, 234, 254, 0.92);
+}
+
+.bg-gray-200 .message-time {
+  color: rgba(51, 65, 85, 0.78);
 }
 
 :root.dark-theme .my-message {
-  background-color: #3b82f6 !important;
+  background-color: var(--chat-accent-bg) !important;
   color: #fff !important;
-  border: 2px solid #60a5fa;
+  border: 1px solid
+    color-mix(in srgb, var(--chat-accent-border) 70%, #93c5fd 30%);
+  box-shadow:
+    0 12px 26px rgba(37, 99, 235, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
 .bg-blue-500 {
@@ -99,10 +173,14 @@ input {
   }
 }
 
-button[type="submit"] {
-  background-color: var(--color-primary);
+.send-btn {
+  background-color: var(--chat-accent-bg);
+  border: 1px solid var(--chat-accent-border);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.22);
+  color: #ffffff;
 
   &:hover {
-    background-color: var(--color-primary-hover);
+    background-color: var(--chat-accent-hover);
+    color: #ffffff;
   }
 }
