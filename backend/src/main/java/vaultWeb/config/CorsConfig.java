@@ -29,7 +29,16 @@ public class CorsConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(List.of("https://localhost:4200"));
+    // Support local dev and VPN-only deployment origins (Tailnet IP / MagicDNS hostnames).
+    config.setAllowedOriginPatterns(
+        List.of(
+            "http://localhost:*",
+            "https://localhost:*",
+            "http://127.0.0.1:*",
+            "https://127.0.0.1:*",
+            "http://100.*.*.*:*",
+            "http://*.vpn.internal:*",
+            "https://*.vpn.internal:*"));
     config.setAllowedHeaders(
         Arrays.asList(
             "Authorization",
