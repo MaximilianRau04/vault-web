@@ -12,6 +12,7 @@ import { Observable, Observer } from 'rxjs';
 export class WebSocketService {
   private client: Client | undefined;
   private connected = false;
+  private reconnectPromise: Promise<void> | null = null;
   private connectCallbacks: (() => void)[] = [];
   private privateSubscriptions: (() => void)[] = [];
   private hostUrl = environment.mainHostAddress;
@@ -21,14 +22,17 @@ export class WebSocketService {
   }
 
   private initClient() {
-    const token = this.auth.getToken();
-
     this.client = new Client({
-      webSocketFactory: () =>
-        new SockJS(`${this.hostUrl}/ws-chat?token=${token}`),
+      webSocketFactory: () => {
+        const token = this.auth.getToken() ?? '';
+        return new SockJS(`${this.hostUrl}/ws-chat?token=${token}`);
+      },
       reconnectDelay: 5000,
-      connectHeaders: {
-        Authorization: `Bearer ${token}`,
+      beforeConnect: () => {
+        const token = this.auth.getToken() ?? '';
+        this.client!.connectHeaders = {
+          Authorization: `Bearer ${token}`,
+        };
       },
       onConnect: () => {
         this.connected = true;
@@ -39,6 +43,12 @@ export class WebSocketService {
       onDisconnect: () => {
         this.connected = false;
       },
+      onWebSocketClose: () => {
+        this.connected = false;
+      },
+      onWebSocketError: () => {
+        this.connected = false;
+      },
       onStompError: (frame) => {
         console.error('Broker error: ', frame.headers['message']);
         console.error('Details: ', frame.body);
@@ -46,6 +56,73 @@ export class WebSocketService {
     });
 
     this.client.activate();
+  }
+
+  ensureConnected(timeoutMs = 6000): Promise<boolean> {
+    return this.ensureConnectedInternal(timeoutMs);
+  }
+
+  private async ensureConnectedInternal(timeoutMs: number): Promise<boolean> {
+    if (this.connected) {
+      return true;
+    }
+
+    if (!this.client) {
+      this.initClient();
+    }
+    await this.forceReconnect();
+
+    return new Promise((resolve) => {
+      let resolved = false;
+      const onConnected = () => {
+        if (resolved) {
+          return;
+        }
+        resolved = true;
+        resolve(true);
+      };
+
+      this.connectCallbacks.push(onConnected);
+
+      setTimeout(() => {
+        if (resolved) {
+          return;
+        }
+        this.connectCallbacks = this.connectCallbacks.filter(
+          (cb) => cb !== onConnected,
+        );
+        resolve(false);
+      }, timeoutMs);
+    });
+  }
+
+  private async forceReconnect(): Promise<void> {
+    if (this.reconnectPromise) {
+      return this.reconnectPromise;
+    }
+
+    this.reconnectPromise = (async () => {
+      if (!this.client) {
+        this.initClient();
+        return;
+      }
+
+      this.connected = false;
+      try {
+        if (this.client.active) {
+          await this.client.deactivate();
+        }
+      } catch {
+        // If deactivate fails, continue with a fresh activate attempt.
+      }
+      this.client.activate();
+    })();
+
+    try {
+      await this.reconnectPromise;
+    } finally {
+      this.reconnectPromise = null;
+    }
   }
 
   sendPrivateMessage(message: ChatMessageDto): boolean {

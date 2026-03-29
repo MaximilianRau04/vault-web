@@ -265,6 +265,12 @@ export class PrivateChatDialogComponent
         e2eePayload: JSON.stringify(payload),
       };
 
+      const isConnected = await this.wsService.ensureConnected();
+      if (!isConnected) {
+        console.error('WebSocket not connected. Message not sent.');
+        return;
+      }
+
       const sent = this.wsService.sendPrivateMessage(message);
       if (!sent) {
         console.error('WebSocket not connected. Message not sent.');

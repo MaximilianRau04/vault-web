@@ -46,7 +46,11 @@ public class CorsConfig {
             "http://*.vpn.internal",
             "https://*.vpn.internal",
             "http://*.vpn.internal:*",
-            "https://*.vpn.internal:*"));
+            "https://*.vpn.internal:*",
+            "http://vault.*",
+            "https://vault.*",
+            "http://vault.*:*",
+            "https://vault.*:*"));
     config.setAllowedHeaders(
         Arrays.asList(
             "Authorization",

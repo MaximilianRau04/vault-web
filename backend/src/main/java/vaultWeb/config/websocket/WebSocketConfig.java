@@ -68,7 +68,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             "http://*.vpn.internal",
             "https://*.vpn.internal",
             "http://*.vpn.internal:*",
-            "https://*.vpn.internal:*")
+            "https://*.vpn.internal:*",
+            "http://vault.*",
+            "https://vault.*",
+            "http://vault.*:*",
+            "https://vault.*:*")
         .withSockJS();
   }
 
