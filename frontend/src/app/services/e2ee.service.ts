@@ -51,7 +51,7 @@ export class E2eeService {
       if (existing) {
         return existing;
       }
-      const created = crypto.randomUUID();
+      const created = this.generateUuid();
       localStorage.setItem(this.deviceIdKey, created);
       return created;
     }
@@ -495,7 +495,7 @@ export class E2eeService {
 
   private createIdentity(username: string): StoredIdentity {
     const identity: StoredIdentity = {
-      deviceId: crypto.randomUUID(),
+      deviceId: this.generateUuid(),
       createdAt: new Date().toISOString(),
     };
     const identities = this.loadIdentities(username);
@@ -503,6 +503,31 @@ export class E2eeService {
     this.saveIdentities(username, identities);
     this.setActiveIdentityDeviceId(username, identity.deviceId);
     return identity;
+  }
+
+  private generateUuid(): string {
+    const webCrypto = globalThis.crypto;
+    if (webCrypto?.randomUUID) {
+      return webCrypto.randomUUID();
+    }
+
+    const bytes = new Uint8Array(16);
+    if (webCrypto?.getRandomValues) {
+      webCrypto.getRandomValues(bytes);
+    } else {
+      for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = Math.floor(Math.random() * 256);
+      }
+    }
+
+    // RFC 4122 version 4 variant bits.
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join(
+      '',
+    );
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
   }
 
   private migrateLegacyIdentity(username: string): void {

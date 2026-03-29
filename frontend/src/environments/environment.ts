@@ -1,7 +1,11 @@
+const useHttps = false;
+const protocol = useHttps ? 'https' : 'http';
+const host = 'localhost';
+
 export const environment = {
   production: false,
-  mainHostAddress: 'https://localhost:8080',
-  mainApiUrl: 'https://localhost:8080/api',
-  cloudServiceApiUrl: 'https://localhost:8090/api',
-  passwordManagerApiUrl: 'https://localhost:8091/api',
+  mainHostAddress: `${protocol}://${host}:8080`,
+  mainApiUrl: `${protocol}://${host}:8080/api`,
+  cloudServiceApiUrl: `${protocol}://${host}:8090/api`,
+  passwordManagerApiUrl: `${protocol}://${host}:8091/api`,
 };
