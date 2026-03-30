@@ -1,4 +1,4 @@
-<div class="cloud-container min-h-screen p-2 sm:p-3">
+<div class="cloud-container p-2 sm:p-3">
   <!-- Header -->
   <div class="flex justify-between items-center mb-1 sm:mb-2">
     <h1 class="cloud-title text-base sm:text-lg font-semibold">Cloud Page</h1>
@@ -43,7 +43,7 @@
     >
       <span>/</span>
       <span
-        class="truncate max-w-[80px] sm:max-w-[120px] cursor-pointer hover:underline"
+        class="truncate max-w-[80px] sm:max-w-[120px]"
         [class.font-semibold]="last"
         [class.cloud-link]="!last"
         (click)="!last && navigateToFolder(crumb.path)"
@@ -69,19 +69,19 @@
     >
       <button
         (click)="createNewFolder(); showCreateDropdown = false"
-        class="w-full text-left px-1.5 sm:px-2 py-1 hover:bg-gray-100 flex items-center gap-1"
+        class="w-full text-left px-1.5 sm:px-2 py-1 flex items-center gap-1"
       >
         📁 Folder
       </button>
       <button
         (click)="createNewFile(); showCreateDropdown = false"
-        class="w-full text-left px-1.5 sm:px-2 py-1 hover:bg-gray-100 flex items-center gap-1"
+        class="w-full text-left px-1.5 sm:px-2 py-1 flex items-center gap-1"
       >
         📄 File
       </button>
       <label
         for="file-upload-dropdown"
-        class="w-full text-left px-1.5 sm:px-2 py-1 hover:bg-gray-100 flex items-center gap-1 cursor-pointer"
+        class="w-full text-left px-1.5 sm:px-2 py-1 flex items-center gap-1 cursor-pointer"
       >
         ⬆️ Upload
         <input

@@ -15,6 +15,11 @@
 
 .cloud-link {
   color: var(--color-primary);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .cloud-btn {
@@ -37,7 +42,7 @@
     color: var(--color-text-primary);
 
     &:hover {
-      background-color: var(--color-surface-hover) !important;
+      background-color: var(--color-surface-hover);
     }
   }
 }
@@ -56,7 +61,7 @@
   border-bottom: 1px solid var(--color-border);
 
   &:hover {
-    background-color: var(--color-surface-hover) !important;
+    background-color: var(--color-surface-hover);
   }
 }
 
