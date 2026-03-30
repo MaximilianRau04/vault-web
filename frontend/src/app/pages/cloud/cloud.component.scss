@@ -1,11 +1,28 @@
 /* Cloud Component Theme Styles */
 .cloud-container {
   background-color: var(--color-background-secondary);
+  color: var(--color-text-primary);
   min-height: 100vh;
 }
 
-/* Buttons */
-button {
+.cloud-title {
+  color: var(--color-text-primary);
+}
+
+.cloud-muted {
+  color: var(--color-text-secondary);
+}
+
+.cloud-link {
+  color: var(--color-primary);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.cloud-btn {
   background-color: var(--color-surface);
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
@@ -15,47 +32,10 @@ button {
   }
 }
 
-/* Table Styles */
-table {
-  background-color: var(--color-surface);
-  color: var(--color-text-primary);
-
-  thead {
-    background-color: var(--color-background-secondary);
-    color: var(--color-text-secondary);
-  }
-
-  tbody tr {
-    border-bottom: 1px solid var(--color-border);
-
-    &:hover {
-      background-color: var(--color-surface-hover);
-    }
-  }
-}
-
-/* Modal Styles */
-.modal-overlay {
-  background-color: var(--color-surface);
-
-  input,
-  textarea {
-    background-color: var(--color-input-bg);
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-input-border);
-
-    &:focus {
-      border-color: var(--color-input-focus-border);
-      outline: none;
-    }
-  }
-}
-
-/* Dropdown */
-.dropdown-menu {
+.cloud-dropdown {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  box-shadow: 0 4px 6px var(--color-shadow);
+  color: var(--color-text-primary);
 
   button,
   label {
@@ -65,4 +45,60 @@ table {
       background-color: var(--color-surface-hover);
     }
   }
+}
+
+.cloud-card {
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.cloud-thead {
+  background-color: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+}
+
+.cloud-row {
+  border-bottom: 1px solid var(--color-border);
+
+  &:hover {
+    background-color: var(--color-surface-hover);
+  }
+}
+
+/* Modal Styles */
+.modal-overlay {
+  backdrop-filter: blur(1px);
+}
+
+.cloud-modal {
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.cloud-close {
+  color: var(--color-text-secondary);
+
+  &:hover {
+    color: var(--color-text-primary);
+  }
+}
+
+.cloud-input {
+  background-color: var(--color-input-bg);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-input-border);
+
+  &::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  &:focus {
+    border-color: var(--color-input-focus-border);
+    outline: none;
+  }
+}
+
+.cloud-textarea {
+  resize: vertical;
 }
