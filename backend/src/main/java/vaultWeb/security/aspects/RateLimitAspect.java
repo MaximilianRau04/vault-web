@@ -7,7 +7,6 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Duration;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -79,22 +78,28 @@ public class RateLimitAspect {
   private String getRateLimitKey(
       ProceedingJoinPoint joinPoint, HttpServletRequest request, ApiRateLimit rateLimit) {
 
+    String ip = getClientIpAddress(request);
     String username = jwtUtil.extractUsernameFromRequest(request);
 
     // If annotation says "rate-limit by IP"
     if (rateLimit.useIpAddress()) {
-      return getClientIpAddress(request);
+      return "IP:" + ip;
     }
 
     // Otherwise rate-limit by username if present
     if (username != null && !username.isBlank()) {
-      return username;
+      return "USER:" + username;
     }
-    // Fallback: unauthenticated
-    return "unknown" + UUID.randomUUID();
+    // Fallback to IP-based key for anonymous users
+    return "ANON:" + ip;
   }
 
   private String getClientIpAddress(HttpServletRequest request) {
+    // Check the header added by proxies/load balancers first
+    String xForwardedFor = request.getHeader("X-Forwarded-For");
+    if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+      return xForwardedFor.split(",")[0].trim();
+    }
     return request.getRemoteAddr();
   }
 }
