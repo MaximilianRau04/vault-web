@@ -79,7 +79,7 @@
       <ng-template pTemplate="body" let-entry>
         <tr
           class="cloud-row"
-          (drop)="onDrop($event, entry.kind === 'folder' ? entry.folder : null)"
+          (drop)="onDrop($event, entry.kind === 'folder' ? entry.path : null)"
           (dragover)="onDragOver($event)"
         >
           <td>
@@ -104,12 +104,14 @@
                 *ngIf="entry.kind === 'file'"
                 icon="pi pi-download"
                 styleClass="p-button-rounded p-button-text p-button-sm cloud-icon-btn"
+                [loading]="isDownloading(entry.path)"
+                [disabled]="isDownloading(entry.path)"
                 (click)="downloadFileByPath(entry.path, entry.name)"
               ></p-button>
               <p-button
                 icon="pi pi-pencil"
                 styleClass="p-button-rounded p-button-text p-button-sm cloud-icon-btn"
-                (click)="entry.kind === 'folder' ? openRenameFolderDialog(entry.folder) : editFileByPath(entry.path, entry.name)"
+                (click)="entry.kind === 'folder' ? openRenameFolderDialog(entry.path, entry.name) : onEditAction(entry.path, entry.name)"
               ></p-button>
               <p-button
                 icon="pi pi-trash"
@@ -218,11 +220,7 @@
         [(ngModel)]="newFileName"
         class="w-full text-xxs sm:text-xs"
         placeholder="filename.txt"
-        [readonly]="!!editingFile"
       />
-      <small *ngIf="editingFile" class="cloud-muted text-xxs sm:text-xs">
-        Renaming during edit is disabled. Use the rename action in the table.
-      </small>
       <label class="text-xxs sm:text-xs">Content</label>
       <textarea
         [(ngModel)]="fileContent"
@@ -240,6 +238,40 @@
         icon="pi pi-save"
         styleClass="p-button-sm text-xxs sm:text-xs"
         (click)="saveFile()"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog
+    [(visible)]="showRenameFileDialog"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    header="Rename File"
+    styleClass="cloud-dialog"
+    [style]="{ width: '26rem', maxWidth: '95vw' }"
+  >
+    <div class="cloud-dialog-body">
+      <label class="text-xxs sm:text-xs">New file name</label>
+      <input
+        pInputText
+        [(ngModel)]="renameFileName"
+        class="w-full text-xxs sm:text-xs"
+        (keydown.enter)="renameFile()"
+      />
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancel"
+        styleClass="p-button-text p-button-sm text-xxs sm:text-xs"
+        (click)="showRenameFileDialog = false"
+      ></p-button>
+      <p-button
+        label="Rename"
+        icon="pi pi-check"
+        styleClass="p-button-sm text-xxs sm:text-xs"
+        (click)="renameFile()"
       ></p-button>
     </ng-template>
   </p-dialog>

@@ -1,5 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MenuItem, ConfirmationService } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
@@ -14,6 +19,7 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { FileDto } from '../../models/dtos/FileDto';
 import { FolderDto } from '../../models/dtos/FolderDto';
 import { CloudService } from '../../services/cloud.service';
+import { finalize, firstValueFrom } from 'rxjs';
 
 interface Breadcrumb {
   name: string;
@@ -26,7 +32,6 @@ interface CloudEntry {
   path: string;
   sizeLabel: string;
   typeLabel: string;
-  folder?: any;
 }
 
 @Component({
@@ -64,12 +69,17 @@ export class CloudComponent implements OnInit {
 
   showCreateFolderDialog = false;
   showRenameFolderDialog = false;
+  showRenameFileDialog = false;
   newFolderName = '';
   renameFolderName = '';
-  selectedFolderForRename: any = null;
+  renameFileName = '';
+  selectedFolderPathForRename: string | null = null;
+  selectedFolderNameForRename: string | null = null;
+  selectedFileForRename: FileDto | null = null;
 
   createMenuItems: MenuItem[] = [];
   entries: CloudEntry[] = [];
+  downloadingPaths = new Set<string>();
 
   private draggedPath: string | null = null;
   private draggedIsFolder = false;
@@ -126,7 +136,6 @@ export class CloudComponent implements OnInit {
       path: entryFolder.path,
       sizeLabel: `${entryFolder.folders.length + entryFolder.files.length} items`,
       typeLabel: 'Folder',
-      folder: entryFolder,
     }));
 
     const fileEntries: CloudEntry[] = folder.files.map((entryFile) => ({
@@ -261,32 +270,41 @@ export class CloudComponent implements OnInit {
     this.showFileEditor = true;
   }
 
-  editFile(file: any) {
-    const nonEditableExtensions = [
-      'pdf',
-      'png',
-      'jpg',
-      'jpeg',
-      'gif',
-      'bmp',
-      'mp4',
-      'mp3',
-      'avi',
-      'mov',
-      'wmv',
-      'flv',
-      'mkv',
-      'zip',
-      'rar',
-      '7z',
-      'tar',
-      'gz',
+  private isTextEditable(fileName: string): boolean {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    const textExt = [
+      'txt',
+      'md',
+      'json',
+      'xml',
+      'log',
+      'csv',
+      'ts',
+      'js',
+      'scss',
+      'css',
+      'html',
+      'yml',
+      'yaml',
+      'java',
+      'py',
+      'sql',
     ];
-    const ext = file.name.split('.').pop()?.toLowerCase();
+    return !!ext && textExt.includes(ext);
+  }
 
-    if (ext && nonEditableExtensions.includes(ext)) {
-      alert('This file cannot be edited. You can download it instead.');
-      this.downloadFile(file);
+  onEditAction(path: string, name: string) {
+    const file = this.toFileRef(path, name);
+    if (this.isTextEditable(name)) {
+      this.editFile(file);
+      return;
+    }
+    this.openRenameFileDialog(file);
+  }
+
+  editFile(file: any) {
+    if (!this.isTextEditable(file.name)) {
+      this.openRenameFileDialog(file);
       return;
     }
 
@@ -306,13 +324,30 @@ export class CloudComponent implements OnInit {
     });
   }
 
-  saveFile() {
-    const nameToSave = this.editingFile?.name || this.newFileName.trim();
+  async saveFile() {
+    const nameToSave = this.newFileName.trim();
     if (!nameToSave) return;
-    const currentPath = this.getRelativePath(this.currentFolder?.path || '/');
-    const fileBlob = new Blob([this.fileContent], { type: 'text/plain' });
-    const file = new File([fileBlob], nameToSave);
-    this.uploadFile(currentPath, file);
+
+    try {
+      if (this.editingFile && nameToSave !== this.editingFile.name) {
+        const relativeSource = this.getRelativePath(this.editingFile.path);
+        const relativeTargetDir = this.getParentRelativePath(this.editingFile.path);
+        const relativeTarget = this.joinRelativePath(relativeTargetDir, nameToSave);
+        await firstValueFrom(
+          this.cloudService.renameOrMoveFile(relativeSource, relativeTarget),
+        );
+      }
+
+      const currentPath = this.getRelativePath(this.currentFolder?.path || '/');
+      const fileBlob = new Blob([this.fileContent], { type: 'text/plain' });
+      const file = new File([fileBlob], nameToSave);
+      await firstValueFrom(this.cloudService.uploadFile(currentPath, file));
+
+      this.navigateToFolder(this.currentFolder?.path);
+      this.closeFileEditor();
+    } catch (err: any) {
+      alert('Error saving file: ' + err.message);
+    }
   }
 
   uploadFile(folderPath: string, file: File) {
@@ -373,45 +408,87 @@ export class CloudComponent implements OnInit {
     });
   }
 
-  openRenameFolderDialog(folder: any) {
-    this.selectedFolderForRename = folder;
-    this.renameFolderName = folder.name;
+  openRenameFolderDialog(folderPath: string, folderName: string) {
+    this.selectedFolderPathForRename = folderPath;
+    this.selectedFolderNameForRename = folderName;
+    this.renameFolderName = folderName;
     this.showRenameFolderDialog = true;
   }
 
   renameFolder() {
-    const folder = this.selectedFolderForRename;
+    const folderPath = this.selectedFolderPathForRename;
+    const folderName = this.selectedFolderNameForRename;
     const newName = this.renameFolderName.trim();
-    if (!folder || !newName || newName === folder.name) return;
+    if (!folderPath || !folderName || !newName || newName === folderName) return;
 
-    const relativeSource = this.getRelativePath(folder.path);
-    const targetPath = folder.path.substring(0, folder.path.lastIndexOf('/'));
-    const relativeTarget = this.getRelativePath(targetPath);
+    const relativeSource = this.getRelativePath(folderPath);
+    const relativeTargetDir = this.getParentRelativePath(folderPath);
+    const relativeTarget = this.joinRelativePath(relativeTargetDir, newName);
 
     this.cloudService
-      .renameOrMoveFolder(relativeSource, `${relativeTarget}/${newName}`)
+      .renameOrMoveFolder(relativeSource, relativeTarget)
       .subscribe({
         next: () => {
           this.showRenameFolderDialog = false;
+          this.selectedFolderPathForRename = null;
+          this.selectedFolderNameForRename = null;
           this.navigateToFolder(this.currentFolder?.path);
         },
         error: (err) => alert('Error renaming folder: ' + err.message),
       });
   }
 
-  downloadFile(file: any) {
-    const relativePath = this.getRelativePath(file.path);
-    this.cloudService.getFileBlob(relativePath).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = file.name;
-        a.click();
-        window.URL.revokeObjectURL(url);
+  openRenameFileDialog(file: FileDto) {
+    this.selectedFileForRename = file;
+    this.renameFileName = file.name;
+    this.showRenameFileDialog = true;
+  }
+
+  renameFile() {
+    const file = this.selectedFileForRename;
+    const newName = this.renameFileName.trim();
+    if (!file || !newName || newName === file.name) return;
+
+    const relativeSource = this.getRelativePath(file.path);
+    const relativeTargetDir = this.getParentRelativePath(file.path);
+    const relativeTarget = this.joinRelativePath(relativeTargetDir, newName);
+
+    this.cloudService.renameOrMoveFile(relativeSource, relativeTarget).subscribe({
+      next: () => {
+        this.showRenameFileDialog = false;
+        this.selectedFileForRename = null;
+        this.navigateToFolder(this.currentFolder?.path);
       },
-      error: (err) => alert('Error downloading file: ' + err.message),
+      error: (err) => alert('Error renaming file: ' + err.message),
     });
+  }
+
+  downloadFile(file: any) {
+    const pathKey = file.path;
+    const relativePath = this.getRelativePath(file.path);
+    this.downloadingPaths.add(pathKey);
+    this.cloudService
+      .getFileBlob(relativePath)
+      .pipe(
+        finalize(() => {
+          this.downloadingPaths.delete(pathKey);
+        }),
+      )
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = file.name;
+          a.click();
+          window.URL.revokeObjectURL(url);
+        },
+        error: (err) => alert('Error downloading file: ' + err.message),
+      });
+  }
+
+  isDownloading(path: string): boolean {
+    return this.downloadingPaths.has(path);
   }
 
   private toFileRef(path: string, name: string): FileDto {
@@ -420,10 +497,6 @@ export class CloudComponent implements OnInit {
 
   downloadFileByPath(path: string, name: string) {
     this.downloadFile(this.toFileRef(path, name));
-  }
-
-  editFileByPath(path: string, name: string) {
-    this.editFile(this.toFileRef(path, name));
   }
 
   previewFileByPath(path: string, name: string) {
@@ -435,6 +508,19 @@ export class CloudComponent implements OnInit {
     this.editingFile = null;
     this.newFileName = '';
     this.fileContent = '';
+  }
+
+  private getParentRelativePath(fullPath: string): string {
+    const relative = this.getRelativePath(fullPath);
+    if (!relative || relative === '/') return '/';
+    const lastSlash = relative.lastIndexOf('/');
+    if (lastSlash <= 0) return '/';
+    return relative.substring(0, lastSlash);
+  }
+
+  private joinRelativePath(parentPath: string, name: string): string {
+    if (!parentPath || parentPath === '/') return name;
+    return `${parentPath}/${name}`;
   }
 
   formatFileSize(bytes: number): string {
@@ -459,11 +545,11 @@ export class CloudComponent implements OnInit {
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
   }
 
-  async onDrop(event: DragEvent, targetFolder: any) {
+  async onDrop(event: DragEvent, targetFolderPath?: string | null) {
     event.preventDefault();
     if (!this.draggedPath) return;
 
-    const targetPath = targetFolder?.path || this.currentFolder?.path;
+    const targetPath = targetFolderPath || this.currentFolder?.path;
     if (!targetPath || this.draggedPath === targetPath) return;
 
     const relativeSource = this.getRelativePath(this.draggedPath);
