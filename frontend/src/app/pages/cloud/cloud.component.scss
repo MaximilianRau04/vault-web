@@ -1,104 +1,252 @@
-/* Cloud Component Theme Styles */
-.cloud-container {
-  background-color: var(--color-background-secondary);
-  color: var(--color-text-primary);
+.cloud-shell {
   min-height: 100vh;
+  padding: 0.65rem;
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+}
+
+.cloud-headline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .cloud-title {
+  margin: 0;
+}
+
+.cloud-subtitle {
+  margin: 0.12rem 0 0;
+  color: var(--color-text-secondary);
+}
+
+.cloud-toolbar-wrap {
+  position: sticky;
+  top: 3.8rem;
+  z-index: 20;
+  margin-bottom: 0.5rem;
+}
+
+:host ::ng-deep .cloud-toolbar {
+  border-radius: var(--p-button-border-radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding: 0.38rem 0.48rem;
+}
+
+.cloud-toolbar-start {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+:host ::ng-deep .cloud-breadcrumb {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+:host ::ng-deep .cloud-breadcrumb .p-breadcrumb-list li .p-menuitem-link,
+:host ::ng-deep .cloud-breadcrumb .p-breadcrumb-list li .p-menuitem-text,
+:host ::ng-deep .cloud-breadcrumb .p-breadcrumb-list li .p-breadcrumb-home {
+  color: var(--color-text-secondary);
+}
+
+:host ::ng-deep .cloud-breadcrumb .p-breadcrumb-list li:last-child .p-menuitem-text {
   color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.cloud-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  color: var(--color-text-secondary);
+}
+
+.cloud-state-error {
+  color: #dc2626;
+  border-color: color-mix(in srgb, #ef4444 45%, var(--color-border));
+  background: color-mix(in srgb, #ef4444 10%, transparent);
+}
+
+.cloud-table-wrap {
+  border-radius: 1rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: 0 6px 14px -14px var(--color-shadow-md);
+  overflow: hidden;
+}
+
+:host ::ng-deep .cloud-table .p-datatable-table {
+  font-size: inherit;
+}
+
+:host ::ng-deep .cloud-table .p-datatable-thead > tr > th {
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
+  border: 0;
+  padding: 0.5rem 0.6rem;
+}
+
+:host ::ng-deep .cloud-table .p-datatable-tbody > tr > td {
+  padding: 0.5rem 0.6rem;
+  border-color: var(--color-border);
+  background: transparent;
+}
+
+:host ::ng-deep .cloud-table .p-datatable-tbody > tr:hover > td {
+  background: var(--color-surface-hover);
+}
+
+.cloud-row {
+  transition: background-color 0.2s ease;
+}
+
+.cloud-entry-btn {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0;
+  text-align: left;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.cloud-entry-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cloud-entry-icon.folder {
+  color: #d97706;
+  background: color-mix(in srgb, #f59e0b 20%, transparent);
+}
+
+.cloud-entry-name {
+  max-width: 26rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cloud-muted {
   color: var(--color-text-secondary);
 }
 
-.cloud-link {
-  color: var(--color-primary);
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
+.cloud-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.15rem;
 }
 
-.cloud-btn {
-  background-color: var(--color-surface);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-
-  &:hover {
-    background-color: var(--color-surface-hover);
-  }
-}
-
-.cloud-dropdown {
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-primary);
-
-  button,
-  label {
-    color: var(--color-text-primary);
-
-    &:hover {
-      background-color: var(--color-surface-hover);
-    }
-  }
-}
-
-.cloud-card {
-  background-color: var(--color-surface);
-  color: var(--color-text-primary);
-}
-
-.cloud-thead {
-  background-color: var(--color-background-secondary);
+:host ::ng-deep .cloud-icon-btn.p-button {
   color: var(--color-text-secondary);
 }
 
-.cloud-row {
-  border-bottom: 1px solid var(--color-border);
-
-  &:hover {
-    background-color: var(--color-surface-hover);
-  }
+:host ::ng-deep .cloud-icon-btn.p-button:hover {
+  background: var(--color-surface-hover);
 }
 
-/* Modal Styles */
-.modal-overlay {
-  backdrop-filter: blur(1px);
+:host ::ng-deep .cloud-accent-btn.p-button {
+  border-color: #4cae86;
+  color: #2f7d5d;
 }
 
-.cloud-modal {
-  background-color: var(--color-surface);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
+:host ::ng-deep .cloud-accent-btn.p-button:hover {
+  background: #eef8f3;
+  border-color: #429a76;
+  color: #27684d;
 }
 
-.cloud-close {
+:host-context(.dark-theme) .cloud-shell {
+  background:
+    radial-gradient(140% 100% at 0% 0%, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent),
+    radial-gradient(140% 100% at 100% 100%, color-mix(in srgb, var(--color-primary) 8%, transparent), transparent),
+    var(--color-background-secondary);
+}
+
+:host-context(.dark-theme) ::ng-deep .cloud-toolbar {
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+:host-context(.dark-theme) .cloud-table-wrap {
+  box-shadow: 0 12px 35px -22px var(--color-shadow-md);
+}
+
+:host-context(.dark-theme) ::ng-deep .cloud-table .p-datatable-thead > tr > th {
+  background: color-mix(in srgb, var(--color-surface-hover) 50%, var(--color-surface));
+}
+
+:host-context(.dark-theme) ::ng-deep .cloud-table .p-datatable-tbody > tr:hover > td {
+  background: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface));
+}
+
+:host-context(.dark-theme) ::ng-deep .cloud-accent-btn.p-button {
+  border-color: #3f8d6d;
+  color: #7bd5aa;
+}
+
+:host-context(.dark-theme) ::ng-deep .cloud-accent-btn.p-button:hover {
+  background: color-mix(in srgb, #2f7d5d 25%, transparent);
+  border-color: #51a884;
+  color: #9ae6c2;
+}
+
+.cloud-empty {
+  text-align: center;
   color: var(--color-text-secondary);
-
-  &:hover {
-    color: var(--color-text-primary);
-  }
+  padding: 0.9rem 0.6rem;
 }
 
-.cloud-input {
-  background-color: var(--color-input-bg);
-  color: var(--color-text-primary);
+.cloud-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.cloud-editor {
+  width: 100%;
+  min-height: 14rem;
   border: 1px solid var(--color-input-border);
-
-  &::placeholder {
-    color: var(--color-text-muted);
-  }
-
-  &:focus {
-    border-color: var(--color-input-focus-border);
-    outline: none;
-  }
+  border-radius: 0.5rem;
+  background: var(--color-input-bg);
+  color: var(--color-text-primary);
+  padding: 0.45rem 0.55rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  resize: vertical;
 }
 
-.cloud-textarea {
-  resize: vertical;
+.cloud-editor:focus {
+  outline: none;
+  border-color: var(--color-input-focus-border);
+}
+
+@media (max-width: 768px) {
+  .cloud-shell {
+    padding: 0.45rem;
+  }
+
+  .cloud-toolbar-wrap {
+    top: 3.35rem;
+  }
 }
