@@ -9,11 +9,21 @@ import { AuthService } from '../../services/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, PrivateChatDialogComponent, FormsModule],
+  imports: [
+    CommonModule,
+    PrivateChatDialogComponent,
+    FormsModule,
+    ButtonModule,
+    DialogModule,
+    InputTextModule,
+  ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

@@ -1,24 +1,29 @@
-/* Shared accent colors so own bubbles and send button stay visually consistent. */
 :host {
-  --chat-accent-bg: #2563eb;
-  --chat-accent-border: #1d4ed8;
-  --chat-accent-hover: #1d4ed8;
+  --chat-accent-bg: var(--color-primary-strong);
+  --chat-accent-border: color-mix(in srgb, var(--color-primary-strong) 80%, #0f172a 20%);
+  --chat-accent-hover: var(--color-primary-hover);
+  --chat-panel-bg: color-mix(in srgb, var(--color-surface) 92%, var(--color-background-secondary));
+  --chat-list-bg: color-mix(in srgb, var(--color-background-secondary) 88%, var(--color-surface));
+  --chat-bubble-other-bg: color-mix(in srgb, var(--color-surface-hover) 80%, var(--color-surface));
 }
 
 :host-context(.dark-theme) {
-  --chat-accent-bg: #3b82f6;
-  --chat-accent-border: #60a5fa;
-  --chat-accent-hover: #2563eb;
+  --chat-accent-bg: var(--color-primary-strong);
+  --chat-accent-border: color-mix(in srgb, var(--color-primary-strong) 72%, #e2e8f0 28%);
+  --chat-accent-hover: color-mix(in srgb, var(--color-primary-strong) 78%, var(--color-primary) 22%);
+  --chat-panel-bg: color-mix(in srgb, var(--color-surface) 90%, #0b1220 10%);
+  --chat-list-bg: color-mix(in srgb, var(--color-background-secondary) 82%, #0f172a 18%);
+  --chat-bubble-other-bg: color-mix(in srgb, var(--color-surface-hover) 65%, var(--color-surface));
 }
 
-/* Private Chat Dialog Theme Styles */
-.fixed {
-  background-color: var(--color-background);
+.chat-shell {
+  background: var(--chat-panel-bg);
 }
 
-.px-4.py-3.border-b {
-  border-bottom: 1px solid var(--color-border);
+.chat-header {
+  border-bottom-color: var(--color-border);
   color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-surface) 86%, transparent);
 }
 
 button {
@@ -26,20 +31,20 @@ button {
 }
 
 .search-toggle-btn {
-  background-color: var(--color-surface);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
+  border-radius: 0.55rem;
   color: var(--color-text-secondary);
 
   &:hover {
     color: var(--color-primary);
-    background-color: var(--color-surface-hover);
+    background: var(--color-surface-hover);
   }
 
   &.is-active {
-    color: var(--color-primary);
+    color: #fff;
     border-color: var(--color-primary);
-    background-color: var(--color-background-secondary);
+    background: var(--color-primary);
   }
 }
 
@@ -52,63 +57,72 @@ button {
 }
 
 .search-bar {
-  border-bottom: 1px solid var(--color-border);
-  background-color: var(--color-background-secondary);
+  border-bottom-color: var(--color-border);
+  background: var(--color-background-secondary);
+}
+
+.chat-search-input {
+  background: var(--color-input-bg);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-input-border);
+
+  &:focus {
+    border-color: var(--color-input-focus-border);
+    box-shadow: 0 0 0 0.16rem color-mix(in srgb, var(--color-primary) 20%, transparent);
+  }
+}
+
+.chat-search-label {
+  color: var(--color-text-muted);
 }
 
 .search-nav-btn {
-  width: 1.8rem;
-  height: 1.8rem;
-  border-radius: 0.4rem;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 0.45rem;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text-secondary);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   line-height: 1;
 
+  &:hover:not(:disabled) {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  }
+
   &:disabled {
-    opacity: 0.45;
+    opacity: 0.4;
     cursor: not-allowed;
   }
 }
 
-.flex-1.overflow-y-auto {
-  background-color: var(--color-background-secondary);
-  padding-top: 0.9rem;
-  padding-bottom: 0.9rem;
+.chat-message-list {
+  background: var(--chat-list-bg);
 }
 
-/** Message Bubbles */
-.bg-gray-200 {
-  background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%) !important;
-  color: #0f172a !important;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  border-radius: 0.6rem !important;
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
-  padding: 0.42rem 0.62rem !important;
-  position: relative;
-  overflow: visible;
+.chat-bubble {
+  border-radius: 0.7rem;
+  padding: 0.5rem 0.72rem !important;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
 }
 
-:root.dark-theme .bg-gray-200 {
-  background: linear-gradient(180deg, #2a3547 0%, #1f2a3b 100%) !important;
-  color: #f8fafc !important;
-  border: 1px solid rgba(100, 116, 139, 0.45);
-  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.35);
+.other-message {
+  background: var(--chat-bubble-other-bg) !important;
+  color: var(--color-text-primary) !important;
+  border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--color-shadow) 24%, transparent);
 }
 
 .my-message {
-  background-color: var(--chat-accent-bg) !important;
+  background: var(--chat-accent-bg) !important;
   color: #fff !important;
-  border: 1px solid
-    color-mix(in srgb, var(--chat-accent-border) 75%, #ffffff 25%);
-  border-radius: 0.6rem !important;
+  border: 1px solid color-mix(in srgb, var(--chat-accent-border) 72%, #fff 28%);
   box-shadow:
-    0 6px 14px rgba(37, 99, 235, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  padding: 0.42rem 0.62rem !important;
-  position: relative;
-  overflow: visible;
+    0 7px 16px color-mix(in srgb, var(--chat-accent-bg) 32%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .search-match {
@@ -116,56 +130,43 @@ button {
 }
 
 .search-active-match {
-  box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.85);
+  box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.88);
 }
 
 .message-time {
-  margin-top: 0.3rem;
-  font-size: 0.62rem;
+  margin-top: 0.32rem;
+  font-size: 0.66rem;
   line-height: 1.1;
-  letter-spacing: 0.02em;
-  opacity: 0.72;
+  opacity: 0.82;
   width: 100%;
   text-align: right;
 }
 
 .my-message .message-time {
-  color: rgba(219, 234, 254, 0.92);
+  color: rgba(239, 246, 255, 0.9);
 }
 
-.bg-gray-200 .message-time {
-  color: rgba(51, 65, 85, 0.78);
+.other-message .message-time {
+  color: color-mix(in srgb, var(--color-text-secondary) 84%, transparent);
 }
 
-:root.dark-theme .my-message {
-  background-color: var(--chat-accent-bg) !important;
-  color: #fff !important;
-  border: 1px solid
-    color-mix(in srgb, var(--chat-accent-border) 70%, #93c5fd 30%);
-  box-shadow:
-    0 12px 26px rgba(37, 99, 235, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+.chat-empty-state {
+  color: var(--color-text-muted);
 }
 
-.bg-blue-500 {
-  background-color: var(--color-primary) !important;
-  color: white !important;
+.chat-input-row {
+  border-top-color: var(--color-border);
+  background: var(--color-surface);
 }
 
-/* Input form */
-form {
-  border-top: 1px solid var(--color-border);
-  background-color: var(--color-surface);
-}
-
-input {
-  background-color: var(--color-input-bg);
+.chat-input {
+  background: var(--color-input-bg);
   color: var(--color-text-primary);
-  border: 1px solid var(--color-input-border);
+  border-color: var(--color-input-border);
 
   &:focus {
     border-color: var(--color-input-focus-border);
-    outline: none;
+    box-shadow: 0 0 0 0.16rem color-mix(in srgb, var(--color-primary) 20%, transparent);
   }
 
   &::placeholder {
@@ -174,13 +175,14 @@ input {
 }
 
 .send-btn {
-  background-color: var(--chat-accent-bg);
+  background: var(--chat-accent-bg);
   border: 1px solid var(--chat-accent-border);
-  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.22);
-  color: #ffffff;
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--chat-accent-bg) 36%, transparent);
+  color: #fff;
+  min-width: 6rem;
 
   &:hover {
-    background-color: var(--chat-accent-hover);
-    color: #ffffff;
+    background: var(--chat-accent-hover);
+    color: #fff;
   }
 }
