@@ -8,10 +8,22 @@
 
       <!-- Desktop Links and Theme Toggle -->
       <div class="hidden md:flex space-x-6 items-center">
-        <a routerLink="/" class="navbar-link">Home</a>
-        <a routerLink="/dashboard" class="navbar-link">Dashboard</a>
-        <a routerLink="/cloud" class="navbar-link">Cloud</a>
-        <a routerLink="/passwords" class="navbar-link">Password Manager</a>
+        <a
+          routerLink="/"
+          class="navbar-link"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          >Home</a
+        >
+        <a routerLink="/dashboard" class="navbar-link" routerLinkActive="is-active"
+          >Dashboard</a
+        >
+        <a routerLink="/cloud" class="navbar-link" routerLinkActive="is-active"
+          >Cloud</a
+        >
+        <a routerLink="/passwords" class="navbar-link" routerLinkActive="is-active"
+          >Password Manager</a
+        >
 
         <!-- Theme Toggle Button -->
         <button
@@ -19,40 +31,8 @@
           class="theme-toggle-btn ml-2"
           [title]="isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'"
         >
-          <!-- Sun Icon (Light Mode) -->
-          <svg
-            *ngIf="isDarkTheme"
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-          </svg>
-          <!-- Moon Icon (Dark Mode) -->
-          <svg
-            *ngIf="!isDarkTheme"
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
+          <i *ngIf="isDarkTheme" class="pi pi-sun"></i>
+          <i *ngIf="!isDarkTheme" class="pi pi-moon"></i>
         </button>
 
         <button type="button" class="logout-btn" (click)="logout()">
@@ -68,57 +48,17 @@
           class="theme-toggle-btn"
           [title]="isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'"
         >
-          <svg
-            *ngIf="isDarkTheme"
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-          </svg>
-          <svg
-            *ngIf="!isDarkTheme"
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
+          <i *ngIf="isDarkTheme" class="pi pi-sun"></i>
+          <i *ngIf="!isDarkTheme" class="pi pi-moon"></i>
         </button>
 
         <!-- Hamburger Menu -->
         <button
           (click)="toggleMobileMenu()"
-          class="navbar-text-secondary focus:outline-none"
+          class="mobile-menu-toggle navbar-text-secondary focus:outline-none"
         >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path *ngIf="!isMobileMenuOpen" d="M4 6h16M4 12h16M4 18h16" />
-            <path *ngIf="isMobileMenuOpen" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <i *ngIf="!isMobileMenuOpen" class="pi pi-bars"></i>
+          <i *ngIf="isMobileMenuOpen" class="pi pi-times"></i>
         </button>
       </div>
     </div>
@@ -126,25 +66,33 @@
 
   <!-- Mobile Menu Overlay -->
   <div *ngIf="isMobileMenuOpen" class="md:hidden mobile-menu px-4 pt-4">
-    <a routerLink="/" (click)="closeMobileMenu()" class="mobile-link block py-2"
+    <a
+      routerLink="/"
+      (click)="closeMobileMenu()"
+      class="mobile-link block py-2"
+      routerLinkActive="is-active"
+      [routerLinkActiveOptions]="{ exact: true }"
       >Home</a
     >
     <a
       routerLink="/dashboard"
       (click)="closeMobileMenu()"
       class="mobile-link block py-2"
+      routerLinkActive="is-active"
       >Dashboard</a
     >
     <a
       routerLink="/cloud"
       (click)="closeMobileMenu()"
       class="mobile-link block py-2"
+      routerLinkActive="is-active"
       >Cloud</a
     >
     <a
       routerLink="/passwords"
       (click)="closeMobileMenu()"
       class="mobile-link block py-2"
+      routerLinkActive="is-active"
       >Password Manager</a
     >
     <button type="button" class="mobile-logout" (click)="logout()">

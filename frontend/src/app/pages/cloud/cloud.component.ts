@@ -390,9 +390,10 @@ export class CloudComponent implements OnInit {
   }
 
   confirmDeleteFile(filePath: string) {
+    const fileName = this.getNameFromPath(filePath);
     this.confirmationService.confirm({
       header: 'Delete File',
-      message: 'Do you really want to delete this file?',
+      message: `Do you really want to delete "${fileName}"?`,
       icon: 'pi pi-exclamation-triangle',
       acceptButtonStyleClass: 'p-button-danger p-button-sm',
       rejectButtonStyleClass: 'p-button-text p-button-sm',

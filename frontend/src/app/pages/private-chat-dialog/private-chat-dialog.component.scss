@@ -35,6 +35,13 @@ button {
   border: 1px solid var(--color-border);
   border-radius: 0.55rem;
   color: var(--color-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  .pi {
+    font-size: 0.95rem;
+  }
 
   &:hover {
     color: var(--color-primary);
@@ -50,9 +57,21 @@ button {
 
 .close-chat-btn {
   color: var(--color-text-secondary);
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  .pi {
+    font-size: 1rem;
+  }
 
   &:hover {
     color: #ef4444;
+    background: var(--color-surface-hover);
   }
 }
 
