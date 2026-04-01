@@ -99,7 +99,7 @@ public class RateLimitAspect {
     String xForwardedFor = request.getHeader("X-Forwarded-For");
 
     // Safety check: If header exists and isn't suspiciously long (spoofing attempt)
-    if(xForwardedFor != null && !xForwardedFor.isBlank() && xForwardedFor.length() < 100) {
+    if (xForwardedFor != null && !xForwardedFor.isBlank() && xForwardedFor.length() < 100) {
       return xForwardedFor.split(",")[0].trim();
     }
 
