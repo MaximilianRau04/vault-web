@@ -95,11 +95,14 @@ public class RateLimitAspect {
   }
 
   private String getClientIpAddress(HttpServletRequest request) {
-    // Check the header added by proxies/load balancers first
+    String remoteAddr = request.getRemoteAddr();
     String xForwardedFor = request.getHeader("X-Forwarded-For");
-    if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+
+    // Safety check: If header exists and isn't suspiciously long (spoofing attempt)
+    if(xForwardedFor != null && !xForwardedFor.isBlank() && xForwardedFor.length() < 100) {
       return xForwardedFor.split(",")[0].trim();
     }
-    return request.getRemoteAddr();
+
+    return remoteAddr;
   }
 }
