@@ -166,6 +166,10 @@ export class PasswordManagerComponent implements OnInit {
 
     if (this.createForm.invalid) {
       this.createForm.markAllAsTouched();
+      this.toast.warn(
+        'Form incomplete',
+        'Please fill all required fields and fix validation errors.',
+      );
       return;
     }
 
@@ -303,6 +307,13 @@ export class PasswordManagerComponent implements OnInit {
     this.vaultGateError = null;
     if (this.unlockForm.invalid) {
       this.unlockForm.markAllAsTouched();
+      const message =
+        this.getMasterPasswordError(
+          this.unlockForm.get('masterPassword'),
+          'Unlock',
+        ) ?? 'Enter your master password.';
+      this.vaultGateError = message;
+      this.toast.warn('Invalid master password', message);
       return;
     }
 
@@ -330,6 +341,11 @@ export class PasswordManagerComponent implements OnInit {
     this.vaultGateError = null;
     if (this.setupForm.invalid) {
       this.setupForm.markAllAsTouched();
+      const message =
+        this.getMasterPasswordError(this.setupForm.get('masterPassword')) ??
+        'Choose a valid master password.';
+      this.vaultGateError = message;
+      this.toast.warn('Invalid master password', message);
       return;
     }
 
@@ -456,5 +472,41 @@ export class PasswordManagerComponent implements OnInit {
         this.toast.error('Load failed', 'Could not load password entries.');
       },
     });
+  }
+
+  getSetupMasterPasswordError(): string | null {
+    return this.getMasterPasswordError(this.setupForm.get('masterPassword'));
+  }
+
+  getUnlockMasterPasswordError(): string | null {
+    return this.getMasterPasswordError(
+      this.unlockForm.get('masterPassword'),
+      'Unlock',
+    );
+  }
+
+  private getMasterPasswordError(
+    control: AbstractControl | null,
+    mode: 'Setup' | 'Unlock' = 'Setup',
+  ): string | null {
+    if (!control || (!control.touched && !control.dirty)) {
+      return null;
+    }
+
+    if (control.hasError('required')) {
+      return mode === 'Unlock'
+        ? 'Enter your master password.'
+        : 'Master password is required.';
+    }
+
+    if (control.hasError('minlength')) {
+      return 'Master password must be at least 8 characters.';
+    }
+
+    if (control.hasError('maxlength')) {
+      return 'Master password is too long.';
+    }
+
+    return null;
   }
 }
