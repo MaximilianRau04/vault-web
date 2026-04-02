@@ -1,19 +1,51 @@
 :host {
   --chat-accent-bg: var(--color-primary-strong);
-  --chat-accent-border: color-mix(in srgb, var(--color-primary-strong) 80%, #0f172a 20%);
+  --chat-accent-border: color-mix(
+    in srgb,
+    var(--color-primary-strong) 80%,
+    #0f172a 20%
+  );
   --chat-accent-hover: var(--color-primary-hover);
-  --chat-panel-bg: color-mix(in srgb, var(--color-surface) 92%, var(--color-background-secondary));
-  --chat-list-bg: color-mix(in srgb, var(--color-background-secondary) 88%, var(--color-surface));
-  --chat-bubble-other-bg: color-mix(in srgb, var(--color-surface-hover) 80%, var(--color-surface));
+  --chat-panel-bg: color-mix(
+    in srgb,
+    var(--color-surface) 92%,
+    var(--color-background-secondary)
+  );
+  --chat-list-bg: color-mix(
+    in srgb,
+    var(--color-background-secondary) 88%,
+    var(--color-surface)
+  );
+  --chat-bubble-other-bg: color-mix(
+    in srgb,
+    var(--color-surface-hover) 80%,
+    var(--color-surface)
+  );
 }
 
 :host-context(.dark-theme) {
   --chat-accent-bg: var(--color-primary-strong);
-  --chat-accent-border: color-mix(in srgb, var(--color-primary-strong) 72%, #e2e8f0 28%);
-  --chat-accent-hover: color-mix(in srgb, var(--color-primary-strong) 78%, var(--color-primary) 22%);
+  --chat-accent-border: color-mix(
+    in srgb,
+    var(--color-primary-strong) 72%,
+    #e2e8f0 28%
+  );
+  --chat-accent-hover: color-mix(
+    in srgb,
+    var(--color-primary-strong) 78%,
+    var(--color-primary) 22%
+  );
   --chat-panel-bg: color-mix(in srgb, var(--color-surface) 90%, #0b1220 10%);
-  --chat-list-bg: color-mix(in srgb, var(--color-background-secondary) 82%, #0f172a 18%);
-  --chat-bubble-other-bg: color-mix(in srgb, var(--color-surface-hover) 65%, var(--color-surface));
+  --chat-list-bg: color-mix(
+    in srgb,
+    var(--color-background-secondary) 82%,
+    #0f172a 18%
+  );
+  --chat-bubble-other-bg: color-mix(
+    in srgb,
+    var(--color-surface-hover) 65%,
+    var(--color-surface)
+  );
 }
 
 .chat-shell {
@@ -87,7 +119,8 @@ button {
 
   &:focus {
     border-color: var(--color-input-focus-border);
-    box-shadow: 0 0 0 0.16rem color-mix(in srgb, var(--color-primary) 20%, transparent);
+    box-shadow: 0 0 0 0.16rem
+      color-mix(in srgb, var(--color-primary) 20%, transparent);
   }
 }
 
@@ -132,7 +165,8 @@ button {
   background: var(--chat-bubble-other-bg) !important;
   color: var(--color-text-primary) !important;
   border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
-  box-shadow: 0 4px 10px color-mix(in srgb, var(--color-shadow) 24%, transparent);
+  box-shadow: 0 4px 10px
+    color-mix(in srgb, var(--color-shadow) 24%, transparent);
 }
 
 .my-message {
@@ -185,7 +219,8 @@ button {
 
   &:focus {
     border-color: var(--color-input-focus-border);
-    box-shadow: 0 0 0 0.16rem color-mix(in srgb, var(--color-primary) 20%, transparent);
+    box-shadow: 0 0 0 0.16rem
+      color-mix(in srgb, var(--color-primary) 20%, transparent);
   }
 
   &::placeholder {
@@ -196,7 +231,8 @@ button {
 .send-btn {
   background: var(--chat-accent-bg);
   border: 1px solid var(--chat-accent-border);
-  box-shadow: 0 6px 14px color-mix(in srgb, var(--chat-accent-bg) 36%, transparent);
+  box-shadow: 0 6px 14px
+    color-mix(in srgb, var(--chat-accent-bg) 36%, transparent);
   color: #fff;
   min-width: 6rem;
 

@@ -54,7 +54,12 @@
   color: var(--color-text-secondary);
 }
 
-:host ::ng-deep .cloud-breadcrumb .p-breadcrumb-list li:last-child .p-menuitem-text {
+:host
+  ::ng-deep
+  .cloud-breadcrumb
+  .p-breadcrumb-list
+  li:last-child
+  .p-menuitem-text {
   color: var(--color-text-primary);
   font-weight: 600;
 }
@@ -179,8 +184,16 @@
 
 :host-context(.dark-theme) .cloud-shell {
   background:
-    radial-gradient(140% 100% at 0% 0%, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent),
-    radial-gradient(140% 100% at 100% 100%, color-mix(in srgb, var(--color-primary) 8%, transparent), transparent),
+    radial-gradient(
+      140% 100% at 0% 0%,
+      color-mix(in srgb, var(--color-primary) 10%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      140% 100% at 100% 100%,
+      color-mix(in srgb, var(--color-primary) 8%, transparent),
+      transparent
+    ),
     var(--color-background-secondary);
 }
 
@@ -194,10 +207,19 @@
 }
 
 :host-context(.dark-theme) ::ng-deep .cloud-table .p-datatable-thead > tr > th {
-  background: color-mix(in srgb, var(--color-surface-hover) 50%, var(--color-surface));
+  background: color-mix(
+    in srgb,
+    var(--color-surface-hover) 50%,
+    var(--color-surface)
+  );
 }
 
-:host-context(.dark-theme) ::ng-deep .cloud-table .p-datatable-tbody > tr:hover > td {
+:host-context(.dark-theme)
+  ::ng-deep
+  .cloud-table
+  .p-datatable-tbody
+  > tr:hover
+  > td {
   background: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface));
 }
 
@@ -232,7 +254,9 @@
   background: var(--color-input-bg);
   color: var(--color-text-primary);
   padding: 0.45rem 0.55rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   resize: vertical;
 }
 

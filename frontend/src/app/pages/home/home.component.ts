@@ -117,7 +117,10 @@ export class HomeComponent implements OnInit {
         },
         error: () => {
           console.error('Failed to get or create private chat');
-          this.toast.error('Chat unavailable', 'Could not open this chat right now.');
+          this.toast.error(
+            'Chat unavailable',
+            'Could not open this chat right now.',
+          );
         },
       });
   }
@@ -254,13 +257,19 @@ export class HomeComponent implements OnInit {
           this.newGroupName = '';
           this.groupDescription = '';
           this.selectedChatIds.clear();
-          this.toast.success('Group created', `"${groupName}" created successfully.`);
+          this.toast.success(
+            'Group created',
+            `"${groupName}" created successfully.`,
+          );
           this.loadData();
         },
         error: (_err) => {
           this.error = 'Failed to create group. Please Try again.';
           this.isProcessing = false;
-          this.toast.error('Create group failed', 'Please try again in a moment.');
+          this.toast.error(
+            'Create group failed',
+            'Please try again in a moment.',
+          );
         },
       });
   }

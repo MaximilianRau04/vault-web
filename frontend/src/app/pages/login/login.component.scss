@@ -42,7 +42,8 @@ a {
 
 .auth-submit-btn {
   background: var(--color-primary-strong);
-  border: 1px solid color-mix(in srgb, var(--color-primary-strong) 82%, #0f172a 18%);
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary-strong) 82%, #0f172a 18%);
   transition: background-color 0.2s ease;
 
   &:hover {

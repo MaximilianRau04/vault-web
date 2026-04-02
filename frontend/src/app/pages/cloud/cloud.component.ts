@@ -1,10 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  ElementRef,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MenuItem, ConfirmationService } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
@@ -176,7 +171,10 @@ export class CloudComponent implements OnInit {
       },
       error: () => {
         this.error = 'Error loading root folder';
-        this.toast.error('Could not load folder', 'Root folder is unavailable.');
+        this.toast.error(
+          'Could not load folder',
+          'Root folder is unavailable.',
+        );
         this.loading = false;
       },
     });
@@ -276,7 +274,8 @@ export class CloudComponent implements OnInit {
         this.navigateToFolder(this.currentFolder?.path);
         this.toast.success('Folder created', `"${folderName}" was created.`);
       },
-      error: (err) => this.toast.error('Create failed', this.getErrorMessage(err)),
+      error: (err) =>
+        this.toast.error('Create failed', this.getErrorMessage(err)),
     });
   }
 
@@ -348,8 +347,13 @@ export class CloudComponent implements OnInit {
     try {
       if (this.editingFile && nameToSave !== this.editingFile.name) {
         const relativeSource = this.getRelativePath(this.editingFile.path);
-        const relativeTargetDir = this.getParentRelativePath(this.editingFile.path);
-        const relativeTarget = this.joinRelativePath(relativeTargetDir, nameToSave);
+        const relativeTargetDir = this.getParentRelativePath(
+          this.editingFile.path,
+        );
+        const relativeTarget = this.joinRelativePath(
+          relativeTargetDir,
+          nameToSave,
+        );
         await firstValueFrom(
           this.cloudService.renameOrMoveFile(relativeSource, relativeTarget),
         );
@@ -376,9 +380,13 @@ export class CloudComponent implements OnInit {
       next: () => {
         this.navigateToFolder(this.currentFolder?.path);
         this.closeFileEditor();
-        this.toast.success('Upload complete', `"${file.name}" uploaded successfully.`);
+        this.toast.success(
+          'Upload complete',
+          `"${file.name}" uploaded successfully.`,
+        );
       },
-      error: (err) => this.toast.error('Upload failed', this.getErrorMessage(err)),
+      error: (err) =>
+        this.toast.error('Upload failed', this.getErrorMessage(err)),
     });
   }
 
@@ -408,9 +416,13 @@ export class CloudComponent implements OnInit {
     this.cloudService.deleteFolder(relativePath).subscribe({
       next: () => {
         this.navigateToFolder(this.currentFolder?.path);
-        this.toast.success('Folder deleted', `"${this.getNameFromPath(folderPath)}" removed.`);
+        this.toast.success(
+          'Folder deleted',
+          `"${this.getNameFromPath(folderPath)}" removed.`,
+        );
       },
-      error: (err) => this.toast.error('Delete failed', this.getErrorMessage(err)),
+      error: (err) =>
+        this.toast.error('Delete failed', this.getErrorMessage(err)),
     });
   }
 
@@ -431,9 +443,13 @@ export class CloudComponent implements OnInit {
     this.cloudService.deleteFile(relativePath).subscribe({
       next: () => {
         this.navigateToFolder(this.currentFolder?.path);
-        this.toast.success('File deleted', `"${this.getNameFromPath(filePath)}" removed.`);
+        this.toast.success(
+          'File deleted',
+          `"${this.getNameFromPath(filePath)}" removed.`,
+        );
       },
-      error: (err) => this.toast.error('Delete failed', this.getErrorMessage(err)),
+      error: (err) =>
+        this.toast.error('Delete failed', this.getErrorMessage(err)),
     });
   }
 
@@ -448,7 +464,8 @@ export class CloudComponent implements OnInit {
     const folderPath = this.selectedFolderPathForRename;
     const folderName = this.selectedFolderNameForRename;
     const newName = this.renameFolderName.trim();
-    if (!folderPath || !folderName || !newName || newName === folderName) return;
+    if (!folderPath || !folderName || !newName || newName === folderName)
+      return;
 
     const relativeSource = this.getRelativePath(folderPath);
     const relativeTargetDir = this.getParentRelativePath(folderPath);
@@ -464,7 +481,8 @@ export class CloudComponent implements OnInit {
           this.navigateToFolder(this.currentFolder?.path);
           this.toast.success('Folder renamed', `Now named "${newName}".`);
         },
-        error: (err) => this.toast.error('Rename failed', this.getErrorMessage(err)),
+        error: (err) =>
+          this.toast.error('Rename failed', this.getErrorMessage(err)),
       });
   }
 
@@ -483,15 +501,18 @@ export class CloudComponent implements OnInit {
     const relativeTargetDir = this.getParentRelativePath(file.path);
     const relativeTarget = this.joinRelativePath(relativeTargetDir, newName);
 
-    this.cloudService.renameOrMoveFile(relativeSource, relativeTarget).subscribe({
-      next: () => {
-        this.showRenameFileDialog = false;
-        this.selectedFileForRename = null;
-        this.navigateToFolder(this.currentFolder?.path);
-        this.toast.success('File renamed', `Now named "${newName}".`);
-      },
-      error: (err) => this.toast.error('Rename failed', this.getErrorMessage(err)),
-    });
+    this.cloudService
+      .renameOrMoveFile(relativeSource, relativeTarget)
+      .subscribe({
+        next: () => {
+          this.showRenameFileDialog = false;
+          this.selectedFileForRename = null;
+          this.navigateToFolder(this.currentFolder?.path);
+          this.toast.success('File renamed', `Now named "${newName}".`);
+        },
+        error: (err) =>
+          this.toast.error('Rename failed', this.getErrorMessage(err)),
+      });
   }
 
   downloadFile(file: FileDto) {
@@ -515,7 +536,8 @@ export class CloudComponent implements OnInit {
           window.URL.revokeObjectURL(url);
           this.toast.info('Download started', `"${file.name}" is downloading.`);
         },
-        error: (err) => this.toast.error('Download failed', this.getErrorMessage(err)),
+        error: (err) =>
+          this.toast.error('Download failed', this.getErrorMessage(err)),
       });
   }
 
@@ -666,7 +688,8 @@ export class CloudComponent implements OnInit {
           const url = URL.createObjectURL(blob);
           window.open(url, '_blank');
         },
-        error: (err) => this.toast.error('Preview failed', this.getErrorMessage(err)),
+        error: (err) =>
+          this.toast.error('Preview failed', this.getErrorMessage(err)),
       });
     } else if (ext && textExt.includes(ext)) {
       this.editFile(file);

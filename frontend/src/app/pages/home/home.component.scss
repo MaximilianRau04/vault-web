@@ -31,7 +31,11 @@ h2 {
 }
 
 .chat-row.is-selected {
-  background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  background-color: color-mix(
+    in srgb,
+    var(--color-primary) 10%,
+    var(--color-surface)
+  );
   box-shadow: inset 3px 0 0 var(--color-primary-hover);
 }
 
@@ -61,7 +65,11 @@ ul {
   background: linear-gradient(
     145deg,
     var(--color-primary-strong),
-    color-mix(in srgb, var(--color-primary-strong) 72%, var(--color-primary) 28%)
+    color-mix(
+      in srgb,
+      var(--color-primary-strong) 72%,
+      var(--color-primary) 28%
+    )
   );
 }
 
@@ -69,9 +77,14 @@ ul {
   background: linear-gradient(
     145deg,
     var(--color-primary-strong),
-    color-mix(in srgb, var(--color-primary-strong) 72%, var(--color-primary) 28%)
+    color-mix(
+      in srgb,
+      var(--color-primary-strong) 72%,
+      var(--color-primary) 28%
+    )
   );
-  box-shadow: 0 6px 14px color-mix(in srgb, var(--color-primary-strong) 36%, transparent);
+  box-shadow: 0 6px 14px
+    color-mix(in srgb, var(--color-primary-strong) 36%, transparent);
 }
 
 .chat-select-checkbox {
@@ -145,5 +158,6 @@ ul {
 
 :host ::ng-deep .home-dialog input.p-inputtext:focus {
   border-color: var(--color-input-focus-border);
-  box-shadow: 0 0 0 0.15rem color-mix(in srgb, var(--color-primary) 18%, transparent);
+  box-shadow: 0 0 0 0.15rem
+    color-mix(in srgb, var(--color-primary) 18%, transparent);
 }

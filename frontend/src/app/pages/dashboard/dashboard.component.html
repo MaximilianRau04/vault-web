@@ -177,31 +177,31 @@
 
           <div class="timeline-wrap">
             <ul class="timeline" *ngIf="data.recentMessages.length">
-            <li
-              class="timeline-entry"
-              *ngFor="
-                let message of recentMessagesLimited;
-                trackBy: trackById
-              "
-              [class.timeline-entry-clickable]="!!message.privateChatId"
-              role="button"
-              tabindex="0"
-              (click)="openRecentMessage(message)"
-              (keydown)="onRecentMessageKeydown($event, message)"
-            >
-              <div class="dot"></div>
-              <div>
-                <p class="timeline-time">
-                  {{ message.timestamp | date: "short" }}
-                </p>
-                <p class="timeline-text">
-                  {{ getRecentMessageText(message) }}
-                </p>
-                <p class="timeline-meta">
-                  {{ getRecentMessageMeta(message) }}
-                </p>
-              </div>
-            </li>
+              <li
+                class="timeline-entry"
+                *ngFor="
+                  let message of recentMessagesLimited;
+                  trackBy: trackById
+                "
+                [class.timeline-entry-clickable]="!!message.privateChatId"
+                role="button"
+                tabindex="0"
+                (click)="openRecentMessage(message)"
+                (keydown)="onRecentMessageKeydown($event, message)"
+              >
+                <div class="dot"></div>
+                <div>
+                  <p class="timeline-time">
+                    {{ message.timestamp | date: "short" }}
+                  </p>
+                  <p class="timeline-text">
+                    {{ getRecentMessageText(message) }}
+                  </p>
+                  <p class="timeline-meta">
+                    {{ getRecentMessageMeta(message) }}
+                  </p>
+                </div>
+              </li>
             </ul>
           </div>
           <p class="timeline-overflow-note" *ngIf="hasMoreRecentMessages">

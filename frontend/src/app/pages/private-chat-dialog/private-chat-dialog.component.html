@@ -1,6 +1,8 @@
 <div class="chat-shell fixed top-0 left-0 w-screen h-screen flex flex-col z-50">
   <!-- Header -->
-  <div class="chat-header px-4 py-3 border-b font-semibold flex justify-between items-center">
+  <div
+    class="chat-header px-4 py-3 border-b font-semibold flex justify-between items-center"
+  >
     <span class="text-lg sm:text-xl">Chat with {{ username }}</span>
     <div class="flex items-center gap-2 flex-shrink-0">
       <button
@@ -22,7 +24,10 @@
     </div>
   </div>
   <!-- Search Bar -->
-  <div *ngIf="isSearchOpen" class="search-bar px-4 py-2 border-b flex items-center gap-2">
+  <div
+    *ngIf="isSearchOpen"
+    class="search-bar px-4 py-2 border-b flex items-center gap-2"
+  >
     <input
       #searchInput
       type="text"
@@ -59,7 +64,10 @@
     </span>
   </div>
   <!-- Messagebox -->
-  <div class="chat-message-list flex-1 overflow-y-auto p-4 space-y-2" #messageContainer>
+  <div
+    class="chat-message-list flex-1 overflow-y-auto p-4 space-y-2"
+    #messageContainer
+  >
     <div
       *ngFor="let msg of messages; let i = index"
       class="flex"

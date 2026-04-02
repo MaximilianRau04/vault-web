@@ -292,7 +292,10 @@ export class PasswordManagerComponent implements OnInit {
       next: (res) => {
         this.revealLoadingIds.delete(entryId);
         this.revealedPasswords.set(entryId, res.password);
-        this.toast.info('Password revealed', 'Visible until you hide it again.');
+        this.toast.info(
+          'Password revealed',
+          'Visible until you hide it again.',
+        );
       },
       error: (err) => {
         this.revealLoadingIds.delete(entryId);
@@ -326,13 +329,19 @@ export class PasswordManagerComponent implements OnInit {
         this.unlockService.setToken(res.token, res.expiresAt);
         this.updateUnlockState();
         this.unlockForm.reset();
-        this.toast.success('Vault unlocked', 'Password manager is now available.');
+        this.toast.success(
+          'Vault unlocked',
+          'Password manager is now available.',
+        );
         this.loadEntries();
       },
       error: (err) => {
         this.isUnlocking = false;
         this.handleApiError(err);
-        this.toast.error('Unlock failed', this.vaultGateError ?? 'Unlock failed.');
+        this.toast.error(
+          'Unlock failed',
+          this.vaultGateError ?? 'Unlock failed.',
+        );
       },
     });
   }
@@ -356,7 +365,10 @@ export class PasswordManagerComponent implements OnInit {
       next: () => {
         this.isSettingUp = false;
         this.vaultInitialized = true;
-        this.toast.success('Vault initialized', 'Now unlocking with your master password.');
+        this.toast.success(
+          'Vault initialized',
+          'Now unlocking with your master password.',
+        );
 
         this.unlockForm.setValue({ masterPassword });
         this.submitUnlock();
@@ -366,7 +378,10 @@ export class PasswordManagerComponent implements OnInit {
       error: (err) => {
         this.isSettingUp = false;
         this.handleApiError(err);
-        this.toast.error('Setup failed', this.vaultGateError ?? 'Vault setup failed.');
+        this.toast.error(
+          'Setup failed',
+          this.vaultGateError ?? 'Vault setup failed.',
+        );
       },
     });
   }
@@ -411,7 +426,10 @@ export class PasswordManagerComponent implements OnInit {
         this.isVaultStatusLoading = false;
         this.vaultGateError = 'Failed to check vault status.';
         console.error('Failed to load vault status', err);
-        this.toast.error('Vault status failed', 'Could not check vault status.');
+        this.toast.error(
+          'Vault status failed',
+          'Could not check vault status.',
+        );
       },
     });
   }

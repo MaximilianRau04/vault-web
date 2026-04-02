@@ -133,11 +133,15 @@ export class DashboardComponent implements OnInit {
   }
 
   get recentMessagesLimited(): MessagePreview[] {
-    return this.dashboard?.recentMessages.slice(0, this.maxRecentMessages) ?? [];
+    return (
+      this.dashboard?.recentMessages.slice(0, this.maxRecentMessages) ?? []
+    );
   }
 
   get hasMoreRecentMessages(): boolean {
-    return (this.dashboard?.recentMessages.length ?? 0) > this.maxRecentMessages;
+    return (
+      (this.dashboard?.recentMessages.length ?? 0) > this.maxRecentMessages
+    );
   }
 
   get hiddenRecentMessagesCount(): number {

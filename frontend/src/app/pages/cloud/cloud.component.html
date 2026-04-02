@@ -87,11 +87,24 @@
               type="button"
               class="cloud-entry-btn"
               draggable="true"
-              (dragstart)="onDragStart($event, entry.path, entry.kind === 'folder')"
-              (click)="entry.kind === 'folder' ? navigateToFolder(entry.path) : previewFileByPath(entry.path, entry.name)"
+              (dragstart)="
+                onDragStart($event, entry.path, entry.kind === 'folder')
+              "
+              (click)="
+                entry.kind === 'folder'
+                  ? navigateToFolder(entry.path)
+                  : previewFileByPath(entry.path, entry.name)
+              "
             >
-              <span class="cloud-entry-icon" [class.folder]="entry.kind === 'folder'">
-                <i class="pi" [class.pi-folder]="entry.kind === 'folder'" [class.pi-file]="entry.kind === 'file'"></i>
+              <span
+                class="cloud-entry-icon"
+                [class.folder]="entry.kind === 'folder'"
+              >
+                <i
+                  class="pi"
+                  [class.pi-folder]="entry.kind === 'folder'"
+                  [class.pi-file]="entry.kind === 'file'"
+                ></i>
               </span>
               <span class="cloud-entry-name">{{ entry.name }}</span>
             </button>
@@ -111,13 +124,21 @@
               <p-button
                 icon="pi pi-pencil"
                 styleClass="p-button-rounded p-button-text p-button-sm cloud-icon-btn"
-                (click)="entry.kind === 'folder' ? openRenameFolderDialog(entry.path, entry.name) : onEditAction(entry.path, entry.name)"
+                (click)="
+                  entry.kind === 'folder'
+                    ? openRenameFolderDialog(entry.path, entry.name)
+                    : onEditAction(entry.path, entry.name)
+                "
               ></p-button>
               <p-button
                 icon="pi pi-trash"
                 severity="danger"
                 styleClass="p-button-rounded p-button-text p-button-sm cloud-icon-btn"
-                (click)="entry.kind === 'folder' ? confirmDeleteFolder(entry.path) : confirmDeleteFile(entry.path)"
+                (click)="
+                  entry.kind === 'folder'
+                    ? confirmDeleteFolder(entry.path)
+                    : confirmDeleteFile(entry.path)
+                "
               ></p-button>
             </div>
           </td>
