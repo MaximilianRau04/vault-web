@@ -66,3 +66,20 @@ body {
   transition-duration: 0.3s;
   transition-timing-function: ease;
 }
+
+/* Global Toast Styling: subtle, readable, mobile-friendly */
+.vw-toast.p-toast {
+  width: min(26rem, calc(100vw - 1.2rem));
+}
+
+.vw-toast .p-toast-message {
+  border-radius: 0.8rem;
+}
+
+.vw-toast .p-toast-message .p-toast-summary {
+  font-weight: 600;
+}
+
+.vw-toast .p-toast-message .p-toast-detail {
+  opacity: 0.92;
+}

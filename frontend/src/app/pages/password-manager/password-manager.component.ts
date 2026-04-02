@@ -15,6 +15,7 @@ import { PasswordEntryDto } from '../../models/dtos/PasswordEntryDto';
 import { PasswordEntryCreateRequestDto } from '../../models/dtos/PasswordEntryCreateRequestDto';
 import { PasswordManagerVaultService } from '../../services/password-manager-vault.service';
 import { PasswordManagerUnlockService } from '../../services/password-manager-unlock.service';
+import { UiToastService } from '../../core/services/ui-toast.service';
 
 const passwordMatchValidator: ValidatorFn = (
   control: AbstractControl,
@@ -70,6 +71,7 @@ export class PasswordManagerComponent implements OnInit {
     private passwordManagerService: PasswordManagerService,
     private vaultService: PasswordManagerVaultService,
     private unlockService: PasswordManagerUnlockService,
+    private toast: UiToastService,
   ) {
     this.createForm = this.fb.group(
       {
@@ -197,6 +199,12 @@ export class PasswordManagerComponent implements OnInit {
       next: () => {
         this.isSaving = false;
         this.isCreateOpen = false;
+        this.toast.success(
+          this.isEditing ? 'Entry updated' : 'Entry created',
+          this.isEditing
+            ? 'Password entry was updated.'
+            : 'Password entry was created.',
+        );
         this.loadEntries();
       },
       error: (err) => {
@@ -207,6 +215,10 @@ export class PasswordManagerComponent implements OnInit {
             ? 'Failed to update password entry'
             : 'Failed to create password entry',
           err,
+        );
+        this.toast.error(
+          this.isEditing ? 'Update failed' : 'Create failed',
+          'Could not save password entry.',
         );
       },
     });
@@ -230,10 +242,12 @@ export class PasswordManagerComponent implements OnInit {
         this.entries = this.entries.filter((e) => e.id !== entry.id);
         this.revealedPasswords.delete(entry.id);
         this.revealLoadingIds.delete(entry.id);
+        this.toast.success('Entry deleted', `"${entry.name}" was removed.`);
       },
       error: (err) => {
         this.handleApiError(err);
         console.error('Failed to delete password entry', err);
+        this.toast.error('Delete failed', 'Could not delete password entry.');
       },
     });
   }
@@ -274,11 +288,13 @@ export class PasswordManagerComponent implements OnInit {
       next: (res) => {
         this.revealLoadingIds.delete(entryId);
         this.revealedPasswords.set(entryId, res.password);
+        this.toast.info('Password revealed', 'Visible until you hide it again.');
       },
       error: (err) => {
         this.revealLoadingIds.delete(entryId);
         this.handleApiError(err);
         console.error('Failed to reveal password', err);
+        this.toast.error('Reveal failed', 'Could not reveal this password.');
       },
     });
   }
@@ -299,11 +315,13 @@ export class PasswordManagerComponent implements OnInit {
         this.unlockService.setToken(res.token, res.expiresAt);
         this.updateUnlockState();
         this.unlockForm.reset();
+        this.toast.success('Vault unlocked', 'Password manager is now available.');
         this.loadEntries();
       },
       error: (err) => {
         this.isUnlocking = false;
         this.handleApiError(err);
+        this.toast.error('Unlock failed', this.vaultGateError ?? 'Unlock failed.');
       },
     });
   }
@@ -322,6 +340,7 @@ export class PasswordManagerComponent implements OnInit {
       next: () => {
         this.isSettingUp = false;
         this.vaultInitialized = true;
+        this.toast.success('Vault initialized', 'Now unlocking with your master password.');
 
         this.unlockForm.setValue({ masterPassword });
         this.submitUnlock();
@@ -331,6 +350,7 @@ export class PasswordManagerComponent implements OnInit {
       error: (err) => {
         this.isSettingUp = false;
         this.handleApiError(err);
+        this.toast.error('Setup failed', this.vaultGateError ?? 'Vault setup failed.');
       },
     });
   }
@@ -345,6 +365,7 @@ export class PasswordManagerComponent implements OnInit {
         this.revealLoadingIds.clear();
         this.entries = [];
         this.vaultGateError = null;
+        this.toast.info('Vault locked', 'Sensitive data was hidden.');
       },
       error: () => {
         this.unlockService.clear();
@@ -374,6 +395,7 @@ export class PasswordManagerComponent implements OnInit {
         this.isVaultStatusLoading = false;
         this.vaultGateError = 'Failed to check vault status.';
         console.error('Failed to load vault status', err);
+        this.toast.error('Vault status failed', 'Could not check vault status.');
       },
     });
   }
@@ -431,6 +453,7 @@ export class PasswordManagerComponent implements OnInit {
         this.hasLoadError = true;
         this.handleApiError(err);
         console.error('Failed to load password entries', err);
+        this.toast.error('Load failed', 'Could not load password entries.');
       },
     });
   }

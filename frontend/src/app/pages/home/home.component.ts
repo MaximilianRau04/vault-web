@@ -12,6 +12,7 @@ import { forkJoin } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { UiToastService } from '../../core/services/ui-toast.service';
 
 @Component({
   selector: 'app-home',
@@ -45,12 +46,18 @@ export class HomeComponent implements OnInit {
   groupDescription = '';
   private requestedPrivateChatId: number | null = null;
 
+  private isHttpStatusZero(err: unknown): boolean {
+    const candidate = err as { status?: number };
+    return candidate?.status === 0;
+  }
+
   constructor(
     private userService: UserService,
     private privateChatService: PrivateChatService,
     private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute,
+    private toast: UiToastService,
   ) {}
 
   ngOnInit(): void {
@@ -87,8 +94,11 @@ export class HomeComponent implements OnInit {
         this.isLoading = false;
         this.tryOpenRequestedPrivateChat();
       },
-      error: () => {
+      error: (err: unknown) => {
         this.error = 'Failed to Load data.';
+        if (!this.isHttpStatusZero(err)) {
+          this.toast.error('Load failed', 'Could not load chats and users.');
+        }
         this.isLoading = false;
       },
     });
@@ -107,6 +117,7 @@ export class HomeComponent implements OnInit {
         },
         error: () => {
           console.error('Failed to get or create private chat');
+          this.toast.error('Chat unavailable', 'Could not open this chat right now.');
         },
       });
   }
@@ -201,11 +212,12 @@ export class HomeComponent implements OnInit {
     this.isProcessing = true;
     const chatIds = Array.from(this.selectedChatIds);
     this.privateChatService.clearMultiplePrivateChats(chatIds).subscribe({
-      next: (response) => {
+      next: (_response) => {
         this.showClearConfirmDialog = false;
         this.selectedChatIds.clear();
         this.isProcessing = false;
         this.isEditMode = false;
+        this.toast.success('Chats cleared', 'Selected chats were removed.');
         //Reload data to reflect changes
         this.loadData();
       },
@@ -213,6 +225,7 @@ export class HomeComponent implements OnInit {
         console.error('Failed to clear chats ', err);
         this.error = 'Failed to clear chats. Please try again.';
         this.isProcessing = false;
+        this.toast.error('Clear failed', 'Could not clear selected chats.');
       },
     });
   }
@@ -228,6 +241,7 @@ export class HomeComponent implements OnInit {
     if (!this.newGroupName.trim()) {
       return;
     }
+    const groupName = this.newGroupName.trim();
     this.isProcessing = true;
     const chatIds = Array.from(this.selectedChatIds);
     this.privateChatService
@@ -240,11 +254,13 @@ export class HomeComponent implements OnInit {
           this.newGroupName = '';
           this.groupDescription = '';
           this.selectedChatIds.clear();
+          this.toast.success('Group created', `"${groupName}" created successfully.`);
           this.loadData();
         },
-        error: (err) => {
+        error: (_err) => {
           this.error = 'Failed to create group. Please Try again.';
           this.isProcessing = false;
+          this.toast.error('Create group failed', 'Please try again in a moment.');
         },
       });
   }

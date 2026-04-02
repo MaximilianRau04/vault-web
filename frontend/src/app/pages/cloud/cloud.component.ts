@@ -20,6 +20,7 @@ import { FileDto } from '../../models/dtos/FileDto';
 import { FolderDto } from '../../models/dtos/FolderDto';
 import { CloudService } from '../../services/cloud.service';
 import { finalize, firstValueFrom } from 'rxjs';
+import { UiToastService } from '../../core/services/ui-toast.service';
 
 interface Breadcrumb {
   name: string;
@@ -63,7 +64,7 @@ export class CloudComponent implements OnInit {
   rootPath = '';
 
   showFileEditor = false;
-  editingFile: any = null;
+  editingFile: FileDto | null = null;
   newFileName = '';
   fileContent = '';
 
@@ -87,7 +88,20 @@ export class CloudComponent implements OnInit {
   constructor(
     private cloudService: CloudService,
     private confirmationService: ConfirmationService,
+    private toast: UiToastService,
   ) {}
+
+  private getErrorMessage(err: unknown): string {
+    const candidate = err as {
+      message?: string;
+      error?: { message?: string };
+    };
+    return (
+      candidate?.error?.message ||
+      candidate?.message ||
+      'Request failed. Please try again.'
+    );
+  }
 
   ngOnInit(): void {
     this.createMenuItems = [
@@ -162,6 +176,7 @@ export class CloudComponent implements OnInit {
       },
       error: () => {
         this.error = 'Error loading root folder';
+        this.toast.error('Could not load folder', 'Root folder is unavailable.');
         this.loading = false;
       },
     });
@@ -183,6 +198,7 @@ export class CloudComponent implements OnInit {
       },
       error: () => {
         this.error = 'Error navigating to folder';
+        this.toast.error('Navigation failed', 'Could not open this folder.');
         this.loading = false;
       },
     });
@@ -258,8 +274,9 @@ export class CloudComponent implements OnInit {
       next: () => {
         this.showCreateFolderDialog = false;
         this.navigateToFolder(this.currentFolder?.path);
+        this.toast.success('Folder created', `"${folderName}" was created.`);
       },
-      error: (err) => alert('Error creating folder: ' + err.message),
+      error: (err) => this.toast.error('Create failed', this.getErrorMessage(err)),
     });
   }
 
@@ -302,7 +319,7 @@ export class CloudComponent implements OnInit {
     this.openRenameFileDialog(file);
   }
 
-  editFile(file: any) {
+  editFile(file: FileDto) {
     if (!this.isTextEditable(file.name)) {
       this.openRenameFileDialog(file);
       return;
@@ -319,7 +336,7 @@ export class CloudComponent implements OnInit {
       },
       error: (err) => {
         this.editingFile = null;
-        alert('Error loading file: ' + err.message);
+        this.toast.error('Could not open file', this.getErrorMessage(err));
       },
     });
   }
@@ -345,8 +362,12 @@ export class CloudComponent implements OnInit {
 
       this.navigateToFolder(this.currentFolder?.path);
       this.closeFileEditor();
-    } catch (err: any) {
-      alert('Error saving file: ' + err.message);
+      this.toast.success(
+        this.editingFile ? 'File updated' : 'File created',
+        `"${nameToSave}" was saved.`,
+      );
+    } catch (err: unknown) {
+      this.toast.error('Save failed', this.getErrorMessage(err));
     }
   }
 
@@ -355,8 +376,9 @@ export class CloudComponent implements OnInit {
       next: () => {
         this.navigateToFolder(this.currentFolder?.path);
         this.closeFileEditor();
+        this.toast.success('Upload complete', `"${file.name}" uploaded successfully.`);
       },
-      error: (err) => alert('Error uploading file: ' + err.message),
+      error: (err) => this.toast.error('Upload failed', this.getErrorMessage(err)),
     });
   }
 
@@ -384,8 +406,11 @@ export class CloudComponent implements OnInit {
   deleteFolder(folderPath: string) {
     const relativePath = this.getRelativePath(folderPath);
     this.cloudService.deleteFolder(relativePath).subscribe({
-      next: () => this.navigateToFolder(this.currentFolder?.path),
-      error: (err) => alert('Error deleting folder: ' + err.message),
+      next: () => {
+        this.navigateToFolder(this.currentFolder?.path);
+        this.toast.success('Folder deleted', `"${this.getNameFromPath(folderPath)}" removed.`);
+      },
+      error: (err) => this.toast.error('Delete failed', this.getErrorMessage(err)),
     });
   }
 
@@ -404,8 +429,11 @@ export class CloudComponent implements OnInit {
   deleteFile(filePath: string) {
     const relativePath = this.getRelativePath(filePath);
     this.cloudService.deleteFile(relativePath).subscribe({
-      next: () => this.navigateToFolder(this.currentFolder?.path),
-      error: (err) => alert('Error deleting file: ' + err.message),
+      next: () => {
+        this.navigateToFolder(this.currentFolder?.path);
+        this.toast.success('File deleted', `"${this.getNameFromPath(filePath)}" removed.`);
+      },
+      error: (err) => this.toast.error('Delete failed', this.getErrorMessage(err)),
     });
   }
 
@@ -434,8 +462,9 @@ export class CloudComponent implements OnInit {
           this.selectedFolderPathForRename = null;
           this.selectedFolderNameForRename = null;
           this.navigateToFolder(this.currentFolder?.path);
+          this.toast.success('Folder renamed', `Now named "${newName}".`);
         },
-        error: (err) => alert('Error renaming folder: ' + err.message),
+        error: (err) => this.toast.error('Rename failed', this.getErrorMessage(err)),
       });
   }
 
@@ -459,12 +488,13 @@ export class CloudComponent implements OnInit {
         this.showRenameFileDialog = false;
         this.selectedFileForRename = null;
         this.navigateToFolder(this.currentFolder?.path);
+        this.toast.success('File renamed', `Now named "${newName}".`);
       },
-      error: (err) => alert('Error renaming file: ' + err.message),
+      error: (err) => this.toast.error('Rename failed', this.getErrorMessage(err)),
     });
   }
 
-  downloadFile(file: any) {
+  downloadFile(file: FileDto) {
     const pathKey = file.path;
     const relativePath = this.getRelativePath(file.path);
     this.downloadingPaths.add(pathKey);
@@ -483,8 +513,9 @@ export class CloudComponent implements OnInit {
           a.download = file.name;
           a.click();
           window.URL.revokeObjectURL(url);
+          this.toast.info('Download started', `"${file.name}" is downloading.`);
         },
-        error: (err) => alert('Error downloading file: ' + err.message),
+        error: (err) => this.toast.error('Download failed', this.getErrorMessage(err)),
       });
   }
 
@@ -573,8 +604,9 @@ export class CloudComponent implements OnInit {
           .toPromise();
       }
       this.reloadRootFolder();
-    } catch (err: any) {
-      alert('Error moving item: ' + err.message);
+      this.toast.success('Item moved', 'Move completed successfully.');
+    } catch (err: unknown) {
+      this.toast.error('Move failed', this.getErrorMessage(err));
     } finally {
       this.draggedPath = null;
     }
@@ -608,8 +640,9 @@ export class CloudComponent implements OnInit {
           .toPromise();
       }
       this.reloadRootFolder();
-    } catch (err: any) {
-      alert('Error moving item: ' + err.message);
+      this.toast.success('Item moved', 'Move completed successfully.');
+    } catch (err: unknown) {
+      this.toast.error('Move failed', this.getErrorMessage(err));
     } finally {
       this.draggedPath = null;
     }
@@ -620,7 +653,7 @@ export class CloudComponent implements OnInit {
     return parts[parts.length - 1];
   }
 
-  previewFile(file: any) {
+  previewFile(file: FileDto) {
     const ext = file.name.split('.').pop()?.toLowerCase();
     const imageExt = ['png', 'jpg', 'jpeg', 'gif', 'bmp'];
     const pdfExt = ['pdf'];
@@ -633,7 +666,7 @@ export class CloudComponent implements OnInit {
           const url = URL.createObjectURL(blob);
           window.open(url, '_blank');
         },
-        error: (err) => alert('Error previewing file: ' + err.message),
+        error: (err) => this.toast.error('Preview failed', this.getErrorMessage(err)),
       });
     } else if (ext && textExt.includes(ext)) {
       this.editFile(file);
