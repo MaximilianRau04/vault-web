@@ -1,10 +1,12 @@
 @use "tailwindcss";
+@import "primeicons/primeicons.css";
 
 /* Theme Variables */
 :root {
   /* Light Theme (Default) */
   --color-primary: #3b82f6;
   --color-primary-hover: #2563eb;
+  --color-primary-strong: #1d4ed8;
   --color-background: #ffffff;
   --color-background-secondary: #f9fafb;
   --color-surface: #ffffff;
@@ -27,6 +29,7 @@
   /* Dark Theme */
   --color-primary: #60a5fa;
   --color-primary-hover: #3b82f6;
+  --color-primary-strong: #2563eb;
   --color-background: #0f172a;
   --color-background-secondary: #1e293b;
   --color-surface: #1e293b;
@@ -62,4 +65,21 @@ body {
   transition-property: background-color, border-color, color;
   transition-duration: 0.3s;
   transition-timing-function: ease;
+}
+
+/* Global Toast Styling: subtle, readable, mobile-friendly */
+.vw-toast.p-toast {
+  width: min(26rem, calc(100vw - 1.2rem));
+}
+
+.vw-toast .p-toast-message {
+  border-radius: 0.8rem;
+}
+
+.vw-toast .p-toast-message .p-toast-summary {
+  font-weight: 600;
+}
+
+.vw-toast .p-toast-message .p-toast-detail {
+  opacity: 0.92;
 }

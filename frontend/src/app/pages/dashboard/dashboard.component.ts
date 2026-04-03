@@ -36,6 +36,7 @@ export class DashboardComponent implements OnInit {
   isLoading = true;
   error: string | null = null;
   statHighlights: StatHighlight[] = [];
+  readonly maxRecentMessages = 12;
   passwordForm: FormGroup;
   isSavingPassword = false;
   passwordSuccess = '';
@@ -109,7 +110,7 @@ export class DashboardComponent implements OnInit {
         : 'Message sent in private chat';
     }
 
-    return message.content || 'Message sent';
+    return this.truncate(message.content || 'Message sent');
   }
 
   getRecentMessageMeta(message: MessagePreview): string {
@@ -129,6 +130,23 @@ export class DashboardComponent implements OnInit {
 
   trackById(_: number, item: { id: number }): number {
     return item?.id ?? 0;
+  }
+
+  get recentMessagesLimited(): MessagePreview[] {
+    return (
+      this.dashboard?.recentMessages.slice(0, this.maxRecentMessages) ?? []
+    );
+  }
+
+  get hasMoreRecentMessages(): boolean {
+    return (
+      (this.dashboard?.recentMessages.length ?? 0) > this.maxRecentMessages
+    );
+  }
+
+  get hiddenRecentMessagesCount(): number {
+    const total = this.dashboard?.recentMessages.length ?? 0;
+    return Math.max(total - this.maxRecentMessages, 0);
   }
 
   get pf(): { [key: string]: AbstractControl } {
@@ -261,5 +279,12 @@ export class DashboardComponent implements OnInit {
     }
 
     return newPassword === confirmPassword ? null : { mismatch: true };
+  }
+
+  private truncate(value: string, maxLength = 110): string {
+    if (!value || value.length <= maxLength) {
+      return value;
+    }
+    return `${value.slice(0, maxLength - 1)}...`;
   }
 }

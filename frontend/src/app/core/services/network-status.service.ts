@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ToastrService } from 'ngx-toastr';
+import { UiToastService } from './ui-toast.service';
 
 @Injectable({
   providedIn: 'root',
@@ -8,7 +8,7 @@ export class NetworkStatusService {
   private lastShownAt = 0;
   private readonly cooldownMs = 5000;
 
-  constructor(private toastr: ToastrService) {}
+  constructor(private toast: UiToastService) {}
 
   showBackendUnavailable(): void {
     const now = Date.now();
@@ -17,9 +17,9 @@ export class NetworkStatusService {
     }
 
     this.lastShownAt = now;
-    this.toastr.error(
-      'The server is currently unreachable. Please check your connection and try again.',
+    this.toast.error(
       'Server unavailable',
+      'The server is currently unreachable. Please check your connection.',
     );
   }
 }

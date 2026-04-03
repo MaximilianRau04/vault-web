@@ -18,8 +18,8 @@ import {
   map,
   first,
 } from 'rxjs/operators';
-import { ToastrService } from 'ngx-toastr';
 import { extractApiErrorPayload } from '../../core/utils/api-error.util';
+import { UiToastService } from '../../core/services/ui-toast.service';
 
 @Component({
   selector: 'app-register',
@@ -42,7 +42,7 @@ export class RegisterComponent implements OnInit {
     private fb: FormBuilder,
     private auth: AuthService,
     private router: Router,
-    private toastr: ToastrService,
+    private toast: UiToastService,
   ) {}
 
   ngOnInit(): void {
@@ -91,7 +91,10 @@ export class RegisterComponent implements OnInit {
 
     this.auth.register(username!, password!).subscribe({
       next: () => {
-        this.toastr.success('Registration successful! You can now login.');
+        this.toast.success(
+          'Registration successful',
+          'You can now log in with your new account.',
+        );
         this.router.navigate(['/login']);
       },
       error: (err) => {
@@ -100,7 +103,7 @@ export class RegisterComponent implements OnInit {
           apiError?.code === 'USERNAME_TAKEN'
             ? 'Dieser Benutzername ist bereits vergeben.'
             : apiError?.message || 'Registration failed. Try again.';
-        this.toastr.error(message);
+        this.toast.error('Registration failed', message);
       },
     });
   }

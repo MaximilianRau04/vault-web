@@ -82,7 +82,7 @@ The backend can run in **HTTP** or **HTTPS** mode:
 
 ### HTTP Mode (API testing only)
 
-For backend-only development and API testing without the frontend.
+For backend and frontend development over plain HTTP on localhost.
 
 ```bash
 cd backend
@@ -91,8 +91,6 @@ cd backend
 
 - API: [http://localhost:8080](http://localhost:8080)
 - Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-
-⚠️ **Note:** The frontend is configured to use HTTPS and will **not connect** to HTTP mode.
 
 ### HTTPS Mode (full-stack development)
 
@@ -128,11 +126,41 @@ see [common_problems.md](./common_problems.md) for platform-specific troubleshoo
 
 ## 5. Frontend (Angular)
 
-⚠️ **Important:** The frontend requires the backend to be running in **HTTPS mode** (see section 4).
+Frontend can run against HTTP backend (default) or HTTPS backend.
+
+### Default local mode (HTTP)
+
+The default `frontend/src/environments/environment.ts` uses:
+
+- `useHttps = false`
+- backend base URL `http://localhost:8080`
+
+Run:
 
 ```bash
 cd frontend
 npm install
+npm start -- --ssl false
+```
+
+Open:
+👉 [http://localhost:4200](http://localhost:4200)
+
+Note:
+
+- In this project, `npm start` maps to `ng serve --ssl` (HTTPS).
+- For HTTP, explicitly pass `--ssl false` (or run `npx ng serve --ssl false`).
+
+### HTTPS dev mode (optional)
+
+If you run backend with `-Dspring-boot.run.profiles=dev` (HTTPS), set:
+
+- `useHttps = true` in `frontend/src/environments/environment.ts`
+
+Then run frontend with SSL:
+
+```bash
+cd frontend
 npm start
 ```
 

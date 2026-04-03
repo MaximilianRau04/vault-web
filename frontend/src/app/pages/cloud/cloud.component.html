@@ -1,254 +1,299 @@
-<div class="cloud-container p-2 sm:p-3">
-  <!-- Header -->
-  <div class="flex justify-between items-center mb-1 sm:mb-2">
-    <h1 class="cloud-title text-base sm:text-lg font-semibold">Cloud Page</h1>
-    <button
-      (click)="reloadRootFolder()"
-      class="cloud-btn px-1.5 py-0.5 sm:px-2 sm:py-1 text-xxs sm:text-xs rounded transition"
-    >
-      ↻ Refresh
-    </button>
-  </div>
+<div class="cloud-shell">
+  <p-confirmdialog></p-confirmdialog>
 
-  <!-- Loading & Error -->
-  <div *ngIf="loading" class="text-center py-2 cloud-muted text-xxs sm:text-xs">
-    <div
-      class="animate-spin h-4 w-4 border-b-2 border-current mx-auto mb-1"
-    ></div>
+  <section class="cloud-headline">
+    <div>
+      <h1 class="cloud-title text-base sm:text-lg">Cloud Page</h1>
+      <p class="cloud-subtitle text-xxs sm:text-xs">
+        {{ totalItemsInView }} items in this folder
+      </p>
+    </div>
+    <p-button
+      label="Refresh"
+      icon="pi pi-refresh"
+      [outlined]="true"
+      styleClass="p-button-sm cloud-accent-btn text-xxs sm:text-xs"
+      (click)="reloadRootFolder()"
+    ></p-button>
+  </section>
+
+  <section class="cloud-toolbar-wrap">
+    <p-toolbar styleClass="cloud-toolbar">
+      <ng-template pTemplate="start">
+        <div class="cloud-toolbar-start">
+          <p-button
+            label="New"
+            icon="pi pi-plus"
+            [outlined]="true"
+            styleClass="p-button-sm cloud-accent-btn text-xxs sm:text-xs"
+            (click)="toggleCreateMenu($event, createMenu)"
+          ></p-button>
+          <p-menu
+            #createMenu
+            [popup]="true"
+            [appendTo]="'body'"
+            [model]="createMenuItems"
+          ></p-menu>
+          <input
+            #fileUploadInput
+            type="file"
+            class="hidden"
+            (change)="onFileSelected($event)"
+          />
+        </div>
+      </ng-template>
+      <ng-template pTemplate="end">
+        <p-breadcrumb
+          [model]="breadcrumbItems"
+          [home]="homeBreadcrumb"
+          styleClass="cloud-breadcrumb text-xxs sm:text-xs"
+        ></p-breadcrumb>
+      </ng-template>
+    </p-toolbar>
+  </section>
+
+  <div *ngIf="loading" class="cloud-state text-xxs sm:text-xs">
+    <i class="pi pi-spin pi-spinner"></i>
     Loading folder...
   </div>
 
-  <div
-    *ngIf="error"
-    class="flex items-center gap-1 text-red-600 text-xxs mb-1 sm:mb-2"
-  >
-    ⚠️ {{ error }}
+  <div *ngIf="error" class="cloud-state cloud-state-error text-xxs sm:text-xs">
+    <i class="pi pi-exclamation-triangle"></i>
+    {{ error }}
   </div>
 
-  <!-- Breadcrumbs -->
-  <div
-    *ngIf="currentFolder && !loading"
-    class="flex items-center text-xxs sm:text-xs mb-1 sm:mb-2 gap-1 flex-wrap"
-  >
-    <span
-      class="cloud-link cursor-pointer"
-      (click)="navigateToRoot()"
-      (dragover)="onBreadcrumbDragOver($event)"
-      (drop)="onBreadcrumbDrop($event, rootPath)"
-      >Root</span
+  <section *ngIf="currentFolder && !loading" class="cloud-table-wrap">
+    <p-table
+      [value]="entries"
+      styleClass="cloud-table text-xxs sm:text-xs"
+      [tableStyle]="{ 'min-width': '100%' }"
     >
-    <span
-      *ngFor="let crumb of breadcrumbs; let last = last"
-      class="flex items-center gap-1"
-    >
-      <span>/</span>
-      <span
-        class="truncate max-w-[80px] sm:max-w-[120px]"
-        [class.font-semibold]="last"
-        [class.cloud-link]="!last"
-        (click)="!last && navigateToFolder(crumb.path)"
-        (dragover)="onBreadcrumbDragOver($event)"
-        (drop)="onBreadcrumbDrop($event, crumb.path)"
-      >
-        {{ crumb.name }}
-      </span>
-    </span>
-  </div>
-
-  <!-- Create Toolbar -->
-  <div class="relative mb-1 sm:mb-2 flex gap-1 sm:gap-2">
-    <button
-      (click)="showCreateDropdown = !showCreateDropdown"
-      class="cloud-btn px-1.5 py-0.5 sm:px-2 sm:py-1 text-xxs sm:text-xs rounded transition"
-    >
-      Create
-    </button>
-    <div
-      *ngIf="showCreateDropdown"
-      class="cloud-dropdown absolute mt-5 sm:mt-6 rounded shadow-md z-10 w-28 sm:w-32 text-xxs sm:text-xs"
-    >
-      <button
-        (click)="createNewFolder(); showCreateDropdown = false"
-        class="w-full text-left px-1.5 sm:px-2 py-1 flex items-center gap-1"
-      >
-        📁 Folder
-      </button>
-      <button
-        (click)="createNewFile(); showCreateDropdown = false"
-        class="w-full text-left px-1.5 sm:px-2 py-1 flex items-center gap-1"
-      >
-        📄 File
-      </button>
-      <label
-        for="file-upload-dropdown"
-        class="w-full text-left px-1.5 sm:px-2 py-1 flex items-center gap-1 cursor-pointer"
-      >
-        ⬆️ Upload
-        <input
-          id="file-upload-dropdown"
-          type="file"
-          (change)="onFileSelected($event)"
-          class="hidden"
-        />
-      </label>
-    </div>
-  </div>
-
-  <!-- File Explorer Table -->
-  <div
-    *ngIf="currentFolder && !loading"
-    class="cloud-card shadow rounded overflow-x-auto"
-  >
-    <table class="w-full table-auto border-collapse text-xxs sm:text-xs">
-      <thead class="cloud-thead sticky top-0">
+      <ng-template pTemplate="header">
         <tr>
-          <th class="text-left px-1 py-0.5 sm:px-2 sm:py-1">Name</th>
-          <th class="text-left px-1 py-0.5 sm:px-2 sm:py-1">Size</th>
-          <th class="text-left px-1 py-0.5 sm:px-2 sm:py-1">Type</th>
-          <th class="px-1 py-0.5 sm:px-2 sm:py-1 text-center">Actions</th>
+          <th>Name</th>
+          <th>Size</th>
+          <th>Type</th>
+          <th class="text-right">Actions</th>
         </tr>
-      </thead>
-      <tbody>
-        <!-- Folders -->
+      </ng-template>
+      <ng-template pTemplate="body" let-entry>
         <tr
-          *ngFor="let folder of currentFolder.folders"
-          class="cloud-row cursor-pointer"
-          (drop)="onDrop($event, folder, true)"
-          (dragover)="onDragOver($event)"
-        >
-          <td
-            class="px-1 py-0.5 sm:px-2 sm:py-1 flex items-center gap-1 sm:gap-2"
-            draggable="true"
-            (dragstart)="onDragStart($event, folder.path, true)"
-            (click)="navigateToFolder(folder.path)"
-          >
-            📁 {{ folder.name }}
-          </td>
-          <td class="px-1 py-0.5 sm:px-2 sm:py-1 cloud-muted">
-            {{ folder.folders.length + folder.files.length }} items
-          </td>
-          <td class="px-1 py-0.5 sm:px-2 sm:py-1 cloud-muted">Folder</td>
-          <td class="px-1 py-0.5 sm:px-2 sm:py-1 text-center">
-            <button
-              (click)="$event.stopPropagation(); renameFolder(folder)"
-              class="text-green-600 hover:bg-green-100 px-1 py-0.5 sm:px-2 sm:py-1 rounded text-xxs sm:text-xs"
-            >
-              ✏️
-            </button>
-            <button
-              (click)="$event.stopPropagation(); deleteFolder(folder.path)"
-              class="text-red-600 hover:bg-red-100 px-1 py-0.5 sm:px-2 sm:py-1 rounded text-xxs sm:text-xs"
-            >
-              🗑️
-            </button>
-          </td>
-        </tr>
-
-        <!-- Files -->
-        <tr
-          *ngFor="let file of currentFolder.files"
           class="cloud-row"
-          (drop)="onDrop($event, null, false)"
+          (drop)="onDrop($event, entry.kind === 'folder' ? entry.path : null)"
           (dragover)="onDragOver($event)"
         >
-          <td
-            class="px-1 py-0.5 sm:px-2 sm:py-1 flex items-center gap-1 sm:gap-2 cursor-pointer"
-            draggable="true"
-            (dragstart)="onDragStart($event, file.path, false)"
-            (click)="previewFile(file)"
-          >
-            📄 {{ file.name }}
-          </td>
-
-          <td class="px-1 py-0.5 sm:px-2 sm:py-1">
-            {{ formatFileSize(file.size) }}
-          </td>
-          <td class="px-1 py-0.5 sm:px-2 sm:py-1">
-            {{ file.mimeType || "Unknown" }}
-          </td>
-          <td class="px-1 py-0.5 sm:px-2 sm:py-1 flex justify-center gap-1">
+          <td>
             <button
-              class="text-blue-600 hover:bg-blue-100 px-1 py-0.5 sm:px-2 sm:py-1 rounded text-xxs sm:text-xs"
-              (click)="downloadFile(file)"
+              type="button"
+              class="cloud-entry-btn"
+              draggable="true"
+              (dragstart)="
+                onDragStart($event, entry.path, entry.kind === 'folder')
+              "
+              (click)="
+                entry.kind === 'folder'
+                  ? navigateToFolder(entry.path)
+                  : previewFileByPath(entry.path, entry.name)
+              "
             >
-              ⬇️
+              <span
+                class="cloud-entry-icon"
+                [class.folder]="entry.kind === 'folder'"
+              >
+                <i
+                  class="pi"
+                  [class.pi-folder]="entry.kind === 'folder'"
+                  [class.pi-file]="entry.kind === 'file'"
+                ></i>
+              </span>
+              <span class="cloud-entry-name">{{ entry.name }}</span>
             </button>
-            <button
-              class="text-green-600 hover:bg-green-100 px-1 py-0.5 sm:px-2 sm:py-1 rounded text-xxs sm:text-xs"
-              (click)="editFile(file)"
-            >
-              ✏️
-            </button>
-            <button
-              class="text-red-600 hover:bg-red-100 px-1 py-0.5 sm:px-2 sm:py-1 rounded text-xxs sm:text-xs"
-              (click)="deleteFile(file.path)"
-            >
-              🗑️
-            </button>
+          </td>
+          <td class="cloud-muted">{{ entry.sizeLabel }}</td>
+          <td class="cloud-muted">{{ entry.typeLabel }}</td>
+          <td>
+            <div class="cloud-actions">
+              <p-button
+                *ngIf="entry.kind === 'file'"
+                icon="pi pi-download"
+                styleClass="p-button-rounded p-button-text p-button-sm cloud-icon-btn"
+                [loading]="isDownloading(entry.path)"
+                [disabled]="isDownloading(entry.path)"
+                (click)="downloadFileByPath(entry.path, entry.name)"
+              ></p-button>
+              <p-button
+                icon="pi pi-pencil"
+                styleClass="p-button-rounded p-button-text p-button-sm cloud-icon-btn"
+                (click)="
+                  entry.kind === 'folder'
+                    ? openRenameFolderDialog(entry.path, entry.name)
+                    : onEditAction(entry.path, entry.name)
+                "
+              ></p-button>
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                styleClass="p-button-rounded p-button-text p-button-sm cloud-icon-btn"
+                (click)="
+                  entry.kind === 'folder'
+                    ? confirmDeleteFolder(entry.path)
+                    : confirmDeleteFile(entry.path)
+                "
+              ></p-button>
+            </div>
           </td>
         </tr>
-
-        <!-- Empty State -->
-        <tr
-          *ngIf="
-            currentFolder.folders.length === 0 &&
-            currentFolder.files.length === 0
-          "
-        >
-          <td
-            colspan="4"
-            class="text-center py-3 sm:py-6 cloud-muted text-xxs sm:text-xs"
-          >
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4" class="cloud-empty text-xxs sm:text-xs">
             This folder is empty. Create a new folder or file.
           </td>
         </tr>
-      </tbody>
-    </table>
-  </div>
+      </ng-template>
+    </p-table>
+  </section>
 
-  <!-- File Editor Modal -->
-  <div
-    *ngIf="showFileEditor"
-    class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-1 sm:p-2"
+  <p-dialog
+    [(visible)]="showCreateFolderDialog"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    header="Create Folder"
+    styleClass="cloud-dialog"
+    [style]="{ width: '26rem', maxWidth: '95vw' }"
   >
-    <div
-      class="cloud-modal w-full max-w-md p-2 sm:p-3 rounded shadow-lg flex flex-col"
-    >
-      <div class="flex justify-between items-center mb-1 sm:mb-2">
-        <h2 class="font-semibold text-xs sm:text-sm">
-          {{ editingFile ? "Edit File" : "Create New File" }}
-        </h2>
-        <button
-          class="cloud-close text-xs sm:text-sm"
-          (click)="showFileEditor = false"
-        >
-          ✖️
-        </button>
-      </div>
+    <div class="cloud-dialog-body">
+      <label class="text-xxs sm:text-xs">Folder name</label>
       <input
-        type="text"
+        pInputText
+        [(ngModel)]="newFolderName"
+        class="w-full text-xxs sm:text-xs"
+        placeholder="my-folder"
+        (keydown.enter)="createNewFolder()"
+      />
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancel"
+        styleClass="p-button-text p-button-sm text-xxs sm:text-xs"
+        (click)="showCreateFolderDialog = false"
+      ></p-button>
+      <p-button
+        label="Create"
+        icon="pi pi-check"
+        styleClass="p-button-sm text-xxs sm:text-xs"
+        (click)="createNewFolder()"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog
+    [(visible)]="showRenameFolderDialog"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    header="Rename Folder"
+    styleClass="cloud-dialog"
+    [style]="{ width: '26rem', maxWidth: '95vw' }"
+  >
+    <div class="cloud-dialog-body">
+      <label class="text-xxs sm:text-xs">New folder name</label>
+      <input
+        pInputText
+        [(ngModel)]="renameFolderName"
+        class="w-full text-xxs sm:text-xs"
+        (keydown.enter)="renameFolder()"
+      />
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancel"
+        styleClass="p-button-text p-button-sm text-xxs sm:text-xs"
+        (click)="showRenameFolderDialog = false"
+      ></p-button>
+      <p-button
+        label="Rename"
+        icon="pi pi-check"
+        styleClass="p-button-sm text-xxs sm:text-xs"
+        (click)="renameFolder()"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog
+    [(visible)]="showFileEditor"
+    (onHide)="closeFileEditor()"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '44rem', maxWidth: '96vw' }"
+    [header]="editingFile ? 'Edit File' : 'Create New File'"
+    styleClass="cloud-dialog"
+  >
+    <div class="cloud-dialog-body">
+      <label class="text-xxs sm:text-xs">File name</label>
+      <input
+        pInputText
         [(ngModel)]="newFileName"
-        class="cloud-input p-1 sm:p-2 rounded mb-1 sm:mb-2 w-full text-xxs sm:text-xs"
+        class="w-full text-xxs sm:text-xs"
         placeholder="filename.txt"
       />
+      <label class="text-xxs sm:text-xs">Content</label>
       <textarea
         [(ngModel)]="fileContent"
-        class="cloud-input cloud-textarea p-1 sm:p-2 rounded h-32 sm:h-48 w-full font-mono mb-1 sm:mb-2 text-xxs sm:text-xs"
+        class="cloud-editor text-xxs sm:text-xs"
       ></textarea>
-      <div class="flex justify-end gap-1 sm:gap-2">
-        <button
-          class="cloud-btn px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xxs sm:text-xs"
-          (click)="showFileEditor = false"
-        >
-          Cancel
-        </button>
-        <button
-          class="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xxs sm:text-xs"
-          (click)="saveFile()"
-        >
-          Save
-        </button>
-      </div>
     </div>
-  </div>
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancel"
+        styleClass="p-button-text p-button-sm text-xxs sm:text-xs"
+        (click)="closeFileEditor()"
+      ></p-button>
+      <p-button
+        label="Save"
+        icon="pi pi-save"
+        styleClass="p-button-sm text-xxs sm:text-xs"
+        (click)="saveFile()"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog
+    [(visible)]="showRenameFileDialog"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    header="Rename File"
+    styleClass="cloud-dialog"
+    [style]="{ width: '26rem', maxWidth: '95vw' }"
+  >
+    <div class="cloud-dialog-body">
+      <label class="text-xxs sm:text-xs">New file name</label>
+      <input
+        pInputText
+        [(ngModel)]="renameFileName"
+        class="w-full text-xxs sm:text-xs"
+        (keydown.enter)="renameFile()"
+      />
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancel"
+        styleClass="p-button-text p-button-sm text-xxs sm:text-xs"
+        (click)="showRenameFileDialog = false"
+      ></p-button>
+      <p-button
+        label="Rename"
+        icon="pi pi-check"
+        styleClass="p-button-sm text-xxs sm:text-xs"
+        (click)="renameFile()"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
 </div>

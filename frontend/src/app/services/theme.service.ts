@@ -12,7 +12,7 @@ export class ThemeService {
   public currentTheme$: Observable<Theme>;
 
   constructor() {
-    // Initialize theme from localStorage or default to light
+    // Initialize theme from localStorage or default to dark
     const savedTheme = this.getStoredTheme();
     this.currentThemeSubject = new BehaviorSubject<Theme>(savedTheme);
     this.currentTheme$ = this.currentThemeSubject.asObservable();
@@ -59,10 +59,10 @@ export class ThemeService {
   private getStoredTheme(): Theme {
     try {
       const stored = localStorage.getItem(this.THEME_KEY);
-      return stored === 'dark' ? 'dark' : 'light';
+      return stored === 'light' ? 'light' : 'dark';
     } catch (e) {
       console.error('Failed to retrieve theme preference:', e);
-      return 'light';
+      return 'dark';
     }
   }
 }

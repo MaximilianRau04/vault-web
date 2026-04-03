@@ -80,7 +80,7 @@
     <!-- SUBMIT BUTTON -->
     <button
       type="submit"
-      class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+      class="auth-submit-btn w-full text-white p-2 rounded mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
       [disabled]="registerForm.invalid"
     >
       Register
@@ -88,12 +88,7 @@
 
     <div class="mt-4 text-center text-sm text-gray-600">
       Already have an account?
-      <a
-        routerLink="/login"
-        class="text-blue-600 underline hover:text-blue-800"
-      >
-        Login
-      </a>
+      <a routerLink="/login" class="auth-link underline"> Login </a>
     </div>
   </form>
 </div>

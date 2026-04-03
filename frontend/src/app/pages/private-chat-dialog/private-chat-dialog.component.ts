@@ -19,6 +19,7 @@ import { PrivateChatService } from '../../services/private-chat.service';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { E2eeService } from '../../services/e2ee.service';
 import { DeviceDto } from '../../models/dtos/DeviceDto';
+import { UiToastService } from '../../core/services/ui-toast.service';
 
 interface ChatMessageView {
   content: string;
@@ -72,6 +73,7 @@ export class PrivateChatDialogComponent
     private wsService: WebSocketService,
     private chatService: PrivateChatService,
     private e2eeService: E2eeService,
+    private toast: UiToastService,
   ) {}
 
   ngOnInit(): void {
@@ -82,6 +84,7 @@ export class PrivateChatDialogComponent
       },
       error: () => {
         console.error('Error loading messages for private chat');
+        this.toast.error('Chat load failed', 'Could not load messages.');
       },
     });
 
@@ -132,6 +135,10 @@ export class PrivateChatDialogComponent
       await this.refreshDevices();
     } catch {
       console.error('Failed to initialize end-to-end encryption');
+      this.toast.warn(
+        'Encryption setup issue',
+        'Some messages may not be available until retry.',
+      );
     }
   }
 
@@ -242,6 +249,10 @@ export class PrivateChatDialogComponent
         this.devices = await this.fetchDevices(true);
         if (!this.devices.length) {
           console.error('No devices available for encryption');
+          this.toast.error(
+            'Message not sent',
+            'No recipient devices available for encryption.',
+          );
           return;
         }
       }
@@ -268,18 +279,27 @@ export class PrivateChatDialogComponent
       const isConnected = await this.wsService.ensureConnected();
       if (!isConnected) {
         console.error('WebSocket not connected. Message not sent.');
+        this.toast.error(
+          'Message not sent',
+          'Connection unavailable. Please try again.',
+        );
         return;
       }
 
       const sent = this.wsService.sendPrivateMessage(message);
       if (!sent) {
         console.error('WebSocket not connected. Message not sent.');
+        this.toast.error(
+          'Message not sent',
+          'Connection unavailable. Please try again.',
+        );
         return;
       }
       this.decryptAndAppendMessage(message);
       this.newMessage = '';
     } catch (error) {
       console.error('Failed to send encrypted message', error);
+      this.toast.error('Message failed', 'Could not send message.');
     }
   }
 
