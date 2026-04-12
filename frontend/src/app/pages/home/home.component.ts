@@ -45,6 +45,8 @@ export class HomeComponent implements OnInit {
   newGroupName = '';
   groupDescription = '';
   private requestedPrivateChatId: number | null = null;
+  searchText: string = '';
+  filteredUsers: UserDto[] = [];
 
   private isHttpStatusZero(err: unknown): boolean {
     const candidate = err as { status?: number };
@@ -91,6 +93,8 @@ export class HomeComponent implements OnInit {
       next: ({ users, chats }) => {
         this.users = users || [];
         this.privateChats = chats || [];
+        this.filteredUsers = [...this.users];
+
         this.isLoading = false;
         this.tryOpenRequestedPrivateChat();
       },
@@ -272,5 +276,21 @@ export class HomeComponent implements OnInit {
           );
         },
       });
+  }
+
+  onSearchChange() {
+    this.filteredUsers = this.filterUsers(this.searchText, this.users);
+  }
+
+  private filterUsers(searchText: string, users: UserDto[]) {
+    if (!searchText.trim()) return [...users];
+    const term = searchText.toLowerCase();
+    return users.filter((user) =>
+      this.matchUserName(user.username.toLowerCase(), term),
+    );
+  }
+
+  private matchUserName(userName: string, term: string): boolean {
+    return userName.includes(term);
   }
 }
