@@ -52,7 +52,7 @@
   </div>
 
   <div *ngIf="!isLoading && !error">
-    <div *ngIf="privateChats.length > 0">
+    <div *ngIf="filteredPrivateChats.length > 0">
       <div
         class="section-heading px-4 py-2 text-xs font-semibold text-gray-600 uppercase"
       >
@@ -60,7 +60,7 @@
       </div>
       <ul class="divide-y divide-gray-200">
         <li
-          *ngFor="let chat of privateChats"
+          *ngFor="let chat of filteredPrivateChats"
           (click)="
             isEditMode ? toggleChatSelection(chat.id) : openPrivateChat(chat)
           "
@@ -116,6 +116,20 @@
           <span class="text-gray-800 font-medium">{{ user.username }}</span>
         </li>
       </ul>
+    </div>
+
+    <div
+      *ngIf="
+        searchText.trim() &&
+        filteredUsers.length === 0 &&
+        filteredPrivateChats.length === 0
+      "
+      class="text-center text-gray-400 py-8 text-sm"
+    >
+      No results for "<span class="font-medium text-gray-450">{{
+        searchText
+      }}</span
+      >"
     </div>
   </div>
 </div>

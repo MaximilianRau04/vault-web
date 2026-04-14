@@ -47,6 +47,7 @@ export class HomeComponent implements OnInit {
   private requestedPrivateChatId: number | null = null;
   searchText: string = '';
   filteredUsers: UserDto[] = [];
+  filteredPrivateChats: PrivateChatDto[] = [];
 
   private isHttpStatusZero(err: unknown): boolean {
     const candidate = err as { status?: number };
@@ -93,8 +94,11 @@ export class HomeComponent implements OnInit {
       next: ({ users, chats }) => {
         this.users = users || [];
         this.privateChats = chats || [];
-        this.filteredUsers = [...this.users];
-
+        this.filteredUsers = this.filterUsers(this.searchText, this.users);
+        this.filteredPrivateChats = this.filterPrivateChats(
+          this.searchText,
+          this.privateChats,
+        );
         this.isLoading = false;
         this.tryOpenRequestedPrivateChat();
       },
@@ -280,17 +284,30 @@ export class HomeComponent implements OnInit {
 
   onSearchChange() {
     this.filteredUsers = this.filterUsers(this.searchText, this.users);
+    this.filteredPrivateChats = this.filterPrivateChats(
+      this.searchText,
+      this.privateChats,
+    );
   }
 
   private filterUsers(searchText: string, users: UserDto[]) {
     if (!searchText.trim()) return [...users];
-    const term = searchText.toLowerCase();
-    return users.filter((user) =>
-      this.matchUserName(user.username.toLowerCase(), term),
+    const term = searchText.trim();
+    return users.filter((user) => this.matchUserName(user.username, term));
+  }
+
+  private filterPrivateChats(
+    searchText: string,
+    privateChats: PrivateChatDto[],
+  ) {
+    if (!searchText.trim()) return [...privateChats];
+    const term = searchText.trim();
+    return privateChats.filter((chat) =>
+      this.matchUserName(this.getOtherUsername(chat), term),
     );
   }
 
   private matchUserName(userName: string, term: string): boolean {
-    return userName.includes(term);
+    return userName.toLowerCase().includes(term.toLowerCase());
   }
 }
