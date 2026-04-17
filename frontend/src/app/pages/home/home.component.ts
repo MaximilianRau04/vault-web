@@ -48,6 +48,8 @@ export class HomeComponent implements OnInit {
   searchText: string = '';
   filteredUsers: UserDto[] = [];
   filteredPrivateChats: PrivateChatDto[] = [];
+  isAllUsersExpanded = false;
+  private readonly USER_EXPANSION_SESSION_KEY = 'homeAllUsersSessionKey';
 
   private isHttpStatusZero(err: unknown): boolean {
     const candidate = err as { status?: number };
@@ -82,6 +84,8 @@ export class HomeComponent implements OnInit {
       return;
     }
     this.loadData();
+    const saved = sessionStorage.getItem(this.USER_EXPANSION_SESSION_KEY);
+    this.isAllUsersExpanded = saved === 'true'; //default false
   }
 
   private loadData() {
@@ -309,5 +313,13 @@ export class HomeComponent implements OnInit {
 
   private matchUserName(userName: string, term: string): boolean {
     return userName.toLowerCase().includes(term.toLowerCase());
+  }
+
+  toggleUserExpansion() {
+    this.isAllUsersExpanded = !this.isAllUsersExpanded;
+    sessionStorage.setItem(
+      this.USER_EXPANSION_SESSION_KEY,
+      String(this.isAllUsersExpanded),
+    );
   }
 }
