@@ -143,7 +143,10 @@ export class CloudComponent implements OnInit {
       kind: 'folder',
       name: entryFolder.name,
       path: entryFolder.path,
-      sizeLabel: `${entryFolder.folders.length + entryFolder.files.length} items`,
+      sizeLabel:
+        entryFolder.directChildrenCount >= 0
+          ? `${entryFolder.directChildrenCount} items`
+          : '-',
       typeLabel: 'Folder',
     }));
 
@@ -161,7 +164,7 @@ export class CloudComponent implements OnInit {
   loadRootFolder() {
     this.loading = true;
     this.error = undefined;
-    this.cloudService.getRootFolder().subscribe({
+    this.cloudService.getRootFolder(false).subscribe({
       next: (folder) => {
         this.currentFolder = folder;
         this.entries = this.buildEntries(folder);
@@ -187,7 +190,7 @@ export class CloudComponent implements OnInit {
   navigateToFolder(folderPath?: string) {
     this.loading = true;
     const relativePath = this.getRelativePath(folderPath || this.rootPath);
-    this.cloudService.getFolderByPath(relativePath).subscribe({
+    this.cloudService.getFolderByPath(relativePath, false).subscribe({
       next: (folder) => {
         this.currentFolder = folder;
         this.entries = this.buildEntries(folder);

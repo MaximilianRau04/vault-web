@@ -17,13 +17,22 @@ export class CloudService {
     return path;
   }
 
-  getRootFolder(): Observable<FolderDto> {
-    return this.http.get<FolderDto>(`${this.apiUrl}/folders`);
+  getRootFolder(includeChildCounts = false): Observable<FolderDto> {
+    const params = new HttpParams().set(
+      'includeChildCounts',
+      String(includeChildCounts),
+    );
+    return this.http.get<FolderDto>(`${this.apiUrl}/folders`, { params });
   }
 
-  getFolderByPath(relativePath?: string): Observable<FolderDto> {
+  getFolderByPath(
+    relativePath?: string,
+    includeChildCounts = false,
+  ): Observable<FolderDto> {
     const path = this.normalizePath(relativePath);
-    const params = new HttpParams().set('path', path);
+    const params = new HttpParams()
+      .set('path', path)
+      .set('includeChildCounts', String(includeChildCounts));
     return this.http.get<FolderDto>(`${this.apiUrl}/folders/path`, { params });
   }
 
