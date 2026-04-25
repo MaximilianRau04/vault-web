@@ -167,6 +167,12 @@ npm start
 Open:
 👉 [https://localhost:4200](https://localhost:4200)
 
+### External links in navbar (runtime config)
+
+The external links are loaded at runtime from: `frontend/public/runtime-config.local.js` (gitignored)
+
+Therefore edit `public/runtime-config.local.js` to add your own external links.
+
 ---
 
 ## Notes

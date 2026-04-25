@@ -1,10 +1,45 @@
 <nav class="navbar-bg shadow-md fixed w-full z-50">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between h-15 items-center">
-      <!-- Logo -->
-      <div class="flex-shrink-0 text-xl font-semibold navbar-text-primary">
-        Vault-Web
+      <div
+        *ngIf="hasExternalLinks; else logoTextOnly"
+        class="logo-dropdown-wrapper hidden md:block"
+      >
+        <button
+          type="button"
+          class="logo-dropdown-toggle"
+          (click)="toggleDomainDropdown($event)"
+          aria-label="Open external links"
+          [attr.aria-expanded]="isDomainDropdownOpen"
+        >
+          <span class="logo-text">Vault-Web</span>
+          <i
+            class="pi dropdown-chevron"
+            [ngClass]="
+              isDomainDropdownOpen ? 'pi-chevron-up' : 'pi-chevron-down'
+            "
+          ></i>
+        </button>
+
+        <div
+          *ngIf="isDomainDropdownOpen"
+          class="logo-dropdown-menu"
+          (click)="$event.stopPropagation()"
+        >
+          <a
+            *ngFor="let link of externalDomainLinks"
+            [href]="link.url"
+            class="logo-dropdown-link"
+            (click)="closeDomainDropdown($event)"
+          >
+            {{ link.name }}
+          </a>
+        </div>
       </div>
+      <ng-template #logoTextOnly>
+        <div class="logo-static-text hidden md:block">Vault-Web</div>
+      </ng-template>
+      <div class="logo-static-text md:hidden">Vault-Web</div>
 
       <!-- Desktop Links and Theme Toggle -->
       <div class="hidden md:flex space-x-6 items-center">
@@ -101,6 +136,19 @@
       routerLinkActive="is-active"
       >Password Manager</a
     >
+
+    <div *ngIf="hasExternalLinks" class="mobile-external-links">
+      <p class="mobile-external-title">External Links</p>
+      <a
+        *ngFor="let link of externalDomainLinks"
+        [href]="link.url"
+        class="mobile-link block py-2"
+        (click)="closeMobileMenu()"
+      >
+        {{ link.name }}
+      </a>
+    </div>
+
     <button type="button" class="mobile-logout" (click)="logout()">
       Logout
     </button>
